@@ -1,0 +1,7 @@
+*
+!bin/generate-pwa.mjs
+!bin/install-libraries.sh
+!bin/server.mjs
+!src
+!src/**
+src/index.html

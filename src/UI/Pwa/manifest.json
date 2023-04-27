@@ -1,0 +1,33 @@
+{
+    "background_color": "#ffffff",
+    "categories": [
+        "utilities"
+    ],
+    "description": "flux-field-value-storage",
+    "dir": "ltr",
+    "display": "browser",
+    "icons": [
+        {
+            "sizes": "any",
+            "src": "../Icon/icon.svg",
+            "type": "image/svg+xml"
+        },
+        {
+            "sizes": "1024x1024",
+            "src": "../Icon/icon.webp",
+            "type": "image/webp"
+        },
+        {
+            "sizes": "32x32",
+            "src": "../Icon/icon.ico",
+            "type": "image/x-icon"
+        }
+    ],
+    "id": "flux-field-value-storage",
+    "lang": "en",
+    "name": "flux-field-value-storage",
+    "scope": "..",
+    "short_name": "field-value-storage",
+    "start_url": "..",
+    "theme_color": "#0e1668"
+}

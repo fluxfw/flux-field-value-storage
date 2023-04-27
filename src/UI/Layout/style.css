@@ -1,0 +1,43 @@
+:root {
+    --flux-color-scheme-light-accent: #0e1668;
+    --flux-color-scheme-light-accent-foreground: #ffffff;
+    --flux-color-scheme-light-accent-foreground-rgb: 31, 263, 54;
+    --flux-color-scheme-light-accent-rgb: 227, 0, 61;
+    --flux-color-scheme-light-background: #ffffff;
+    --flux-color-scheme-light-background-rgb: 255, 255, 255;
+    --flux-color-scheme-light-foreground: #000000;
+    --flux-color-scheme-light-foreground-rgb: 0, 0, 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    margin: 10px;
+}
+
+flux-button-group {
+    margin-bottom: 10px;
+}
+
+table {
+    height: auto;
+    margin-top: 10px;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid var(--flux-color-scheme-light-foreground);
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+button {
+    cursor: default;
+    margin-right: 10px;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
