@@ -1,9 +1,9 @@
 import { FIELD_TYPE_TIME } from "./FIELD_TYPE.mjs";
-import { INPUT_TYPE_TIME } from "../../../flux-overlay/src/INPUT_TYPE.mjs";
+import { INPUT_TYPE_TIME } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 const TIME_PATTERN = /^\d{2}:\d{2}$/;
 

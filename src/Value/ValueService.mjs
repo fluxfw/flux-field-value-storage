@@ -1,7 +1,7 @@
-import { INPUT_TYPE_TEXT } from "../../../flux-overlay/src/INPUT_TYPE.mjs";
+import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value.mjs").Value} Value */
 
 const NAME_PATTERN = /^[\w\-.]+$/;

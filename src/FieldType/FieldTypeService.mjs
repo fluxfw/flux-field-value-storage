@@ -2,7 +2,7 @@ import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 export class FieldTypeService {
     /**

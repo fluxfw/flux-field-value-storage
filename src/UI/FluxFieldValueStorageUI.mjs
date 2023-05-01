@@ -153,7 +153,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = type_inputs;
+        await flux_overlay_element.setInputs(
+            type_inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -175,14 +177,16 @@ export class FluxFieldValueStorageUI {
             return;
         }
 
-        flux_overlay_element.inputs = true;
+        await flux_overlay_element.setInputs(
+            true
+        );
         flux_overlay_element.buttons = true;
         await flux_overlay_element.showLoading();
 
         let inputs;
         try {
             inputs = await this.#request(
-                `field/get-type-inputs/${type_result.inputs.type}`
+                `field/get-type-inputs/${type_result.inputs.find(value => value.name === "type").value}`
             );
         } catch (error) {
             console.error(error);
@@ -201,7 +205,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = inputs;
+        await flux_overlay_element.setInputs(
+            inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -223,14 +229,19 @@ export class FluxFieldValueStorageUI {
             return;
         }
 
-        flux_overlay_element.inputs = true;
+        await flux_overlay_element.setInputs(
+            true
+        );
         flux_overlay_element.buttons = true;
         await flux_overlay_element.showLoading();
 
         try {
             await this.#request(
-                `field/store/${result.inputs.name}`,
-                result.inputs,
+                `field/store/${result.inputs.find(value => value.name === "name").value}`,
+                Object.fromEntries(result.inputs.map(value => [
+                    value.name,
+                    value.value
+                ])),
                 METHOD_PUT,
                 false
             );
@@ -293,7 +304,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = inputs;
+        await flux_overlay_element.setInputs(
+            inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -312,7 +325,7 @@ export class FluxFieldValueStorageUI {
         }
 
         this.#addValue(
-            result.inputs.name
+            result.inputs.find(value => value.name === "name").value
         );
     }
 
@@ -353,7 +366,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = inputs;
+        await flux_overlay_element.setInputs(
+            inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -375,7 +390,9 @@ export class FluxFieldValueStorageUI {
             return;
         }
 
-        flux_overlay_element.inputs = true;
+        await flux_overlay_element.setInputs(
+            true
+        );
         flux_overlay_element.buttons = true;
         await flux_overlay_element.showLoading();
 
@@ -383,13 +400,7 @@ export class FluxFieldValueStorageUI {
             await this.#request(
                 `value/store/${name}`,
                 {
-                    values: Object.entries(result.inputs).map(([
-                        field_name,
-                        value
-                    ]) => ({
-                        name: field_name,
-                        value
-                    }))
+                    values: result.inputs
                 },
                 METHOD_PUT,
                 false
@@ -548,7 +559,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = inputs;
+        await flux_overlay_element.setInputs(
+            inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -570,14 +583,19 @@ export class FluxFieldValueStorageUI {
             return;
         }
 
-        flux_overlay_element.inputs = true;
+        await flux_overlay_element.setInputs(
+            true
+        );
         flux_overlay_element.buttons = true;
         await flux_overlay_element.showLoading();
 
         try {
             await this.#request(
                 `field/store/${name}`,
-                result.inputs,
+                Object.fromEntries(result.inputs.map(value => [
+                    value.name,
+                    value.value
+                ])),
                 METHOD_PUT,
                 false
             );
@@ -641,7 +659,9 @@ export class FluxFieldValueStorageUI {
         await flux_overlay_element.showLoading(
             false
         );
-        flux_overlay_element.inputs = inputs;
+        await flux_overlay_element.setInputs(
+            inputs
+        );
         flux_overlay_element.buttons = [
             {
                 label: "Cancel",
@@ -663,7 +683,9 @@ export class FluxFieldValueStorageUI {
             return;
         }
 
-        flux_overlay_element.inputs = true;
+        await flux_overlay_element.setInputs(
+            true
+        );
         flux_overlay_element.buttons = true;
         await flux_overlay_element.showLoading();
 
@@ -671,13 +693,7 @@ export class FluxFieldValueStorageUI {
             await this.#request(
                 `value/store/${name}`,
                 {
-                    values: Object.entries(result.inputs).map(([
-                        field_name,
-                        value
-                    ]) => ({
-                        name: field_name,
-                        value
-                    }))
+                    values: result.inputs
                 },
                 METHOD_PUT,
                 false

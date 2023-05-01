@@ -16,7 +16,7 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("../../flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("../../flux-mongo-db-connector/src/FluxMongoDbConnector.mjs").FluxMongoDbConnector} FluxMongoDbConnector */
 /** @typedef {import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs").FluxShutdownHandler} FluxShutdownHandler */
-/** @typedef {import("../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value/Value.mjs").Value} Value */
 /** @typedef {import("./Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("./Value/ValueService.mjs").ValueService} ValueService */

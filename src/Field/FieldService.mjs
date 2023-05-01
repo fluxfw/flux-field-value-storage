@@ -1,9 +1,9 @@
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-overlay/src/INPUT_TYPE.mjs";
+import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
 /** @typedef {import("./Field.mjs").Field} Field */
 /** @typedef {import("../FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("../Value/Value.mjs").Value} Value */
 /** @typedef {import("../Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 

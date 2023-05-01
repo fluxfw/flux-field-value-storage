@@ -1,9 +1,9 @@
 import { FIELD_TYPE_EMAIL } from "./FIELD_TYPE.mjs";
-import { INPUT_TYPE_EMAIL, INPUT_TYPE_TEXT } from "../../../flux-overlay/src/INPUT_TYPE.mjs";
+import { INPUT_TYPE_EMAIL, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/; // https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
 

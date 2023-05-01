@@ -1,5 +1,5 @@
 /** @typedef {import("../Field/Field.mjs").Field} Field */
-/** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
+/** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 /**
  * @interface
