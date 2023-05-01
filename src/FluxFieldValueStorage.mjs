@@ -18,6 +18,7 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs").FluxShutdownHandler} FluxShutdownHandler */
 /** @typedef {import("../../flux-overlay/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value/Value.mjs").Value} Value */
+/** @typedef {import("./Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("./Value/ValueService.mjs").ValueService} ValueService */
 
 export class FluxFieldValueStorage {
@@ -208,7 +209,7 @@ export class FluxFieldValueStorage {
 
     /**
      * @param {string} name
-     * @returns {Promise<{[key: string]: string} | null>}
+     * @returns {Promise<ValueAsText[] | null>}
      */
     async getValueAsText(name) {
         const value = await this.getValue(

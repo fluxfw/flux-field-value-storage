@@ -5,6 +5,7 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_T
 /** @typedef {import("../FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../../flux-overlay/src/Input.mjs").Input} Input */
 /** @typedef {import("../Value/Value.mjs").Value} Value */
+/** @typedef {import("../Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 
 const NAME_PATTERN = /^[\w\-.]+$/;
 
@@ -297,19 +298,23 @@ export class FieldService {
 
     /**
      * @param {Value} value
-     * @returns {Promise<{[key: string]: string}>}
+     * @returns {Promise<ValueAsText[]>}
      */
     async getValueAsText(value) {
-        const row = {};
+        const values = [];
 
         for (const field of await this.getFields()) {
-            row[field.label] = await this.#field_type_service.getValueAsText(
-                field,
-                value.values.find(field_value => field_value.name === field.name)?.value ?? null
-            );
+            values.push({
+                name: field.name,
+                label: field.label,
+                value: await this.#field_type_service.getValueAsText(
+                    field,
+                    value.values.find(field_value => field_value.name === field.name)?.value ?? null
+                )
+            });
         }
 
-        return row;
+        return values;
     }
 
     /**

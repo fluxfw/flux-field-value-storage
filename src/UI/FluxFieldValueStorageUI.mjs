@@ -416,13 +416,6 @@ export class FluxFieldValueStorageUI {
     }
 
     /**
-     * @returns {string}
-     */
-    get #base_api_route() {
-        return new URL(location.href).searchParams.get("base-api-route") ?? "api";
-    }
-
-    /**
      * @param {string} name
      * @returns {Promise<boolean>}
      */
@@ -1137,7 +1130,7 @@ export class FluxFieldValueStorageUI {
 
         const response = await this.#flux_http_api.request(
             HttpClientRequest[body !== null ? "json" : "new"](
-                new URL(`/${this.#base_api_route}/${route}`, location.origin),
+                new URL(`${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/../api/${route}`, location.origin),
                 body,
                 method,
                 null,
