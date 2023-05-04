@@ -10,6 +10,7 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("mongodb").Db} Db */
 /** @typedef {import("./Field/Field.mjs").Field} Field */
 /** @typedef {import("./Field/FieldService.mjs").FieldService} FieldService */
+/** @typedef {import("./Field/FieldTable.mjs").FieldTable} FieldTable */
 /** @typedef {import("./FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../flux-authentication-backend/src/FluxAuthenticationBackend.mjs").FluxAuthenticationBackend} FluxAuthenticationBackend */
 /** @typedef {import("../../flux-config-api/src/FluxConfigApi.mjs").FluxConfigApi} FluxConfigApi */
@@ -20,6 +21,7 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("./Value/Value.mjs").Value} Value */
 /** @typedef {import("./Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("./Value/ValueService.mjs").ValueService} ValueService */
+/** @typedef {import("./Value/ValueTable.mjs").ValueTable} ValueTable */
 
 export class FluxFieldValueStorage {
     /**
@@ -112,7 +114,7 @@ export class FluxFieldValueStorage {
 
     /**
      * @param {string} name
-     * @returns {Promise<Field[]>}
+     * @returns {Promise<Field | null>}
      */
     async getField(name) {
         const field = await (await this.#getFieldService()).getField(
@@ -154,7 +156,7 @@ export class FluxFieldValueStorage {
     }
 
     /**
-     * @returns {Promise<{columns: {[key: string]: string}[], rows: {[key: string]: string}[]}>}
+     * @returns {Promise<FieldTable>}
      */
     async getFieldTable() {
         return (await this.#getFieldService()).getFieldTable();
@@ -251,16 +253,40 @@ export class FluxFieldValueStorage {
     }
 
     /**
-     * @returns {Promise<Value[]>}
+     * @param {{[key: string]: *} | null} filter
+     * @returns {Promise<Value[] | null>}
      */
-    async getValues() {
+    async getValues(filter = null) {
+        const _filter = filter ?? {};
+        if (typeof _filter !== "object") {
+            return null;
+        }
+
         const field_type_service = await this.#getFieldTypeService();
+        const value_service = await this.#getValueService();
 
         const fields = await (await this.#getFieldService()).getFields();
 
-        const values = [];
+        let values;
+        if ((_filter.name ?? null) !== null) {
+            if (typeof _filter.name !== "string" || _filter.name === "") {
+                return null;
+            }
 
-        for (const value of await (await this.#getValueService()).getValues()) {
+            const value = await value_service.getValue(
+                _filter.name
+            );
+
+            values = value !== null ? [
+                value
+            ] : [];
+        } else {
+            values = await value_service.getValues();
+        }
+
+        const _values = [];
+
+        for (const value of values) {
             const field_values = [];
 
             for (const field of fields) {
@@ -273,22 +299,38 @@ export class FluxFieldValueStorage {
                 });
             }
 
-            values.push({
+            _values.push({
                 name: value.name,
                 values: field_values
             });
         }
 
-        return values;
+        return _values;
     }
 
     /**
-     * @returns {Promise<{columns: {[key: string]: string}[], rows: {[key: string]: string}[]}>}
+     * @param {{[key: string]: *} | null} filter
+     * @returns {Promise<ValueTable | null>}
      */
-    async getValueTable() {
-        return (await this.#getFieldService()).getValueTable(
-            await this.getValues()
+    async getValueTable(filter = null) {
+        const values = await this.getValues(
+            filter
         );
+
+        if (values === null) {
+            return null;
+        }
+
+        return (await this.#getFieldService()).getValueTable(
+            values
+        );
+    }
+
+    /**
+     * @returns {Promise<Input[]>}
+     */
+    async getValueTableFilterInputs() {
+        return (await this.#getValueService()).getValueTableFilterInputs();
     }
 
     /**

@@ -12,7 +12,8 @@
     margin: 10px;
 }
 
-flux-button-group {
+flux-button-group,
+flux-form {
     margin-bottom: 10px;
 }
 

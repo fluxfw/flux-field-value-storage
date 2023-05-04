@@ -2,10 +2,12 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_T
 
 /** @typedef {import("mongodb").Collection} Collection */
 /** @typedef {import("./Field.mjs").Field} Field */
+/** @typedef {import("./FieldTable.mjs").FieldTable} FieldTable */
 /** @typedef {import("../FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("../Value/Value.mjs").Value} Value */
 /** @typedef {import("../Value/ValueAsText.mjs").ValueAsText} ValueAsText */
+/** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
 const NAME_PATTERN = /^[\w\-.]+$/;
 
@@ -220,7 +222,7 @@ export class FieldService {
     }
 
     /**
-     * @returns {Promise<{columns: {[key: string]: string}[], rows: {[key: string]: string}[]}>}
+     * @returns {Promise<FieldTable>}
      */
     async getFieldTable() {
         const rows = [];
@@ -270,12 +272,7 @@ export class FieldService {
      * @returns {Promise<Input[]>}
      */
     async getFieldTypeInputs() {
-        const options = [
-            {
-                label: "-",
-                value: ""
-            }
-        ];
+        const options = [];
 
         for (const field_type of await this.#field_type_service.getFieldTypes()) {
             options.push({
@@ -342,7 +339,7 @@ export class FieldService {
 
     /**
      * @param {Value[]} values
-     * @returns {Promise<{columns: {[key: string]: string}[], rows: {[key: string]: string}[]}>}
+     * @returns {Promise<ValueTable>}
      */
     async getValueTable(values) {
         const fields = await this.getFields();

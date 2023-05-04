@@ -3,10 +3,14 @@ import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
 
+/** @typedef {import("../Field/FieldTable.mjs").FieldTable} FieldTable */
 /** @typedef {import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs").FluxButtonGroupElement} FluxButtonGroupElement */
 /** @typedef {import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs").FluxColorScheme} FluxColorScheme */
+/** @typedef {import("./Libs/flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
 /** @typedef {import("./Libs/flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs").FluxPwaApi} FluxPwaApi */
+/** @typedef {import("./Libs/flux-form/src/InputValue.mjs").InputValue} InputValue */
+/** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
 flux_css_api.adopt(
     document,
@@ -35,19 +39,27 @@ export class FluxFieldValueStorageUI {
     /**
      * @type {HTMLDivElement | null}
      */
-    #fields_element = null;
+    #field_element = null;
     /**
-     * @type {boolean}
+     * @type {FieldTable | null}
      */
-    #get_fields;
+    #field_table = null;
     /**
-     * @type {boolean}
+     * @type {ValueTable | null}
      */
-    #get_values;
+    #value_table = null;
+    /**
+     * @type {InputValue[] | null}
+     */
+    #value_table_filter = null;
+    /**
+     * @type {FluxFormElement | null}
+     */
+    #value_table_filter_form = null;
     /**
      * @type {HTMLDivElement | null}
      */
-    #values_element = null;
+    #value_element = null;
 
     /**
      * @returns {FluxFieldValueStorageUI}
@@ -60,8 +72,7 @@ export class FluxFieldValueStorageUI {
      * @private
      */
     constructor() {
-        this.#get_fields = false;
-        this.#get_values = false;
+
     }
 
     /**
@@ -71,7 +82,9 @@ export class FluxFieldValueStorageUI {
         await this.#init();
 
         const {
-            FLUX_BUTTON_GROUP_INPUT_EVENT,
+            FLUX_BUTTON_GROUP_EVENT_INPUT
+        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_GROUP_EVENT.mjs");
+        const {
             FluxButtonGroupElement
         } = await import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs");
         this.#flux_button_group_element = FluxButtonGroupElement.new(
@@ -87,19 +100,24 @@ export class FluxFieldValueStorageUI {
                 }
             ]
         );
-        this.#flux_button_group_element.addEventListener(FLUX_BUTTON_GROUP_INPUT_EVENT, async e => {
-            this.#fields_element.style.display = "none";
-            this.#values_element.style.display = "none";
+        this.#flux_button_group_element.addEventListener(FLUX_BUTTON_GROUP_EVENT_INPUT, async e => {
+            this.#field_element.style.display = "none";
+            this.#field_element.innerHTML = "";
+
+            this.#value_element.style.display = "none";
+            this.#value_element.innerHTML = "";
 
             switch (e.detail.value) {
                 case "fields":
-                    this.#fields_element.style.display = "";
-                    this.#getFields();
+                    this.#field_element.style.display = "";
+
+                    this.#getFieldTable();
                     break;
 
                 case "values":
-                    this.#values_element.style.display = "";
-                    this.#getValues();
+                    this.#value_element.style.display = "";
+
+                    this.#getValueTable();
                     break;
 
                 default:
@@ -108,13 +126,14 @@ export class FluxFieldValueStorageUI {
         });
         document.body.appendChild(this.#flux_button_group_element);
 
-        this.#fields_element = document.createElement("div");
-        this.#fields_element.style.display = "none";
-        document.body.appendChild(this.#fields_element);
+        this.#field_element = document.createElement("div");
+        this.#field_element.style.display = "none";
+        document.body.appendChild(this.#field_element);
 
-        this.#values_element = document.createElement("div");
-        document.body.appendChild(this.#values_element);
-        this.#getValues();
+        this.#value_element = document.createElement("div");
+        document.body.appendChild(this.#value_element);
+
+        this.#getValueTable();
     }
 
     /**
@@ -238,6 +257,7 @@ export class FluxFieldValueStorageUI {
         try {
             await this.#request(
                 `field/store/${result.inputs.find(value => value.name === "name").value}`,
+                null,
                 Object.fromEntries(result.inputs.map(value => [
                     value.name,
                     value.value
@@ -261,11 +281,11 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#get_values = false;
+        this.#field_table = null;
+        this.#value_table_filter_form = null;
+        this.#value_table = null;
 
-        this.#getFields(
-            true
-        );
+        this.#getFieldTable();
     }
 
     /**
@@ -399,6 +419,7 @@ export class FluxFieldValueStorageUI {
         try {
             await this.#request(
                 `value/store/${name}`,
+                null,
                 {
                     values: result.inputs
                 },
@@ -421,9 +442,9 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#getValues(
-            true
-        );
+        this.#value_table = null;
+
+        this.#getValueTable();
     }
 
     /**
@@ -450,6 +471,7 @@ export class FluxFieldValueStorageUI {
             await this.#request(
                 `field/delete/${name}`,
                 null,
+                null,
                 METHOD_DELETE,
                 false
             );
@@ -469,7 +491,8 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#get_values = false;
+        this.#value_table_filter_form = null;
+        this.#value_table = null;
 
         return true;
     }
@@ -498,6 +521,7 @@ export class FluxFieldValueStorageUI {
             await this.#request(
                 `value/delete/${name}`,
                 null,
+                null,
                 METHOD_DELETE,
                 false
             );
@@ -517,9 +541,9 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#getValues(
-            true
-        );
+        this.#value_table = null;
+
+        this.#getValueTable();
     }
 
     /**
@@ -592,6 +616,7 @@ export class FluxFieldValueStorageUI {
         try {
             await this.#request(
                 `field/store/${name}`,
+                null,
                 Object.fromEntries(result.inputs.map(value => [
                     value.name,
                     value.value
@@ -615,11 +640,11 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#get_values = false;
+        this.#field_table = null;
+        this.#value_table_filter_form = null;
+        this.#value_table = null;
 
-        this.#getFields(
-            true
-        );
+        this.#getFieldTable();
     }
 
     /**
@@ -692,6 +717,7 @@ export class FluxFieldValueStorageUI {
         try {
             await this.#request(
                 `value/store/${name}`,
+                null,
                 {
                     values: result.inputs
                 },
@@ -714,40 +740,34 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#getValues(
-            true
-        );
+        this.#value_table = null;
+
+        this.#getValueTable();
     }
 
     /**
-     * @param {boolean | null} force
      * @returns {Promise<void>}
      */
-    async #getFields(force = null) {
-        if (this.#get_fields && !(force ?? false)) {
-            return;
-        }
-
-        this.#get_fields = true;
-
-        this.#fields_element.innerHTML = "";
+    async #getFieldTable() {
+        this.#field_element.innerHTML = "";
 
         this.#flux_button_group_element.disabled = true;
 
         const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-        this.#fields_element.appendChild(flux_loading_spinner_element);
+        this.#field_element.appendChild(flux_loading_spinner_element);
 
-        let table;
         try {
-            table = await this.#request(
-                "field/get-table"
-            );
+            if (this.#field_table === null) {
+                this.#field_table = await this.#request(
+                    "field/get-table"
+                );
+            }
         } catch (error) {
             console.error(error);
 
             const error_element = document.createElement("div");
-            error_element.innerText = "Error!";
-            this.#fields_element.appendChild(error_element);
+            error_element.innerText = "Can't load fields!";
+            this.#field_element.appendChild(error_element);
 
             return;
         } finally {
@@ -762,24 +782,26 @@ export class FluxFieldValueStorageUI {
         add_button.addEventListener("click", () => {
             this.#addField();
         });
-        this.#fields_element.appendChild(add_button);
+        this.#field_element.appendChild(add_button);
 
         const refresh_button = document.createElement("button");
         refresh_button.innerText = "Refresh";
         refresh_button.type = "button";
         refresh_button.addEventListener("click", () => {
-            this.#getFields(
-                true
-            );
+            this.#field_table = null;
+            this.#value_table_filter_form = null;
+            this.#value_table = null;
+
+            this.#getFieldTable();
         });
-        this.#fields_element.appendChild(refresh_button);
+        this.#field_element.appendChild(refresh_button);
 
         const table_element = document.createElement("table");
 
         const thead_element = document.createElement("thead");
         const thead_tr_element = document.createElement("tr");
 
-        for (const column of table.columns) {
+        for (const column of this.#field_table.columns) {
             const th_element = document.createElement("th");
             th_element.innerText = column.label;
             thead_tr_element.appendChild(th_element);
@@ -803,10 +825,10 @@ export class FluxFieldValueStorageUI {
                 tr_element.querySelector("[data-move_down_button]").disabled = tr_element.nextElementSibling === null;
             }
         }
-        for (const row of table.rows) {
+        for (const row of this.#field_table.rows) {
             const tr_element = document.createElement("tr");
 
-            for (const column of table.columns) {
+            for (const column of this.#field_table.columns) {
                 const td_element = document.createElement("td");
                 td_element.innerText = row[column.key] ?? "-";
                 tr_element.appendChild(td_element);
@@ -881,7 +903,7 @@ export class FluxFieldValueStorageUI {
         table_element.appendChild(tbody_element);
         updateButtons();
 
-        this.#fields_element.appendChild(table_element);
+        this.#field_element.appendChild(table_element);
     }
 
     /**
@@ -921,34 +943,47 @@ export class FluxFieldValueStorageUI {
     }
 
     /**
-     * @param {boolean | null} force
      * @returns {Promise<void>}
      */
-    async #getValues(force = null) {
-        if (this.#get_values && !(force ?? false)) {
-            return;
-        }
-
-        this.#get_values = true;
-
-        this.#values_element.innerHTML = "";
+    async #getValueTable() {
+        this.#value_element.innerHTML = "";
 
         this.#flux_button_group_element.disabled = true;
 
         const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-        this.#values_element.appendChild(flux_loading_spinner_element);
+        this.#value_element.appendChild(flux_loading_spinner_element);
 
-        let table;
         try {
-            table = await this.#request(
-                "value/get-table"
-            );
+            if (this.#value_table_filter_form === null) {
+                this.#value_table_filter_form = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+                    (await this.#request(
+                        "value/get-table-filter-inputs"
+                    )).map(input => ({
+                        ...input,
+                        value: this.#value_table_filter?.find(value => value.name === input.name)?.value ?? input.value ?? null
+                    }))
+                );
+            }
+
+            if (this.#value_table_filter !== null) {
+                if (this.#value_table === null) {
+                    this.#value_table = await this.#request(
+                        "value/get-table",
+                        Object.fromEntries(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(value => [
+                            value.name,
+                            value.value
+                        ]))
+                    );
+                }
+            } else {
+                this.#value_table = null;
+            }
         } catch (error) {
             console.error(error);
 
             const error_element = document.createElement("div");
-            error_element.innerText = "Error!";
-            this.#values_element.appendChild(error_element);
+            error_element.innerText = "Can't load values!";
+            this.#value_element.appendChild(error_element);
 
             return;
         } finally {
@@ -957,31 +992,42 @@ export class FluxFieldValueStorageUI {
             flux_loading_spinner_element.remove();
         }
 
-        if (table["show-add-new"]) {
+        this.#value_element.appendChild(this.#value_table_filter_form);
+
+        const search_button = document.createElement("button");
+        search_button.innerText = "Search";
+        search_button.type = "button";
+        search_button.addEventListener("click", () => {
+            if (!this.#value_table_filter_form.validateInputs()) {
+                return;
+            }
+
+            this.#value_table_filter = this.#value_table_filter_form.values;
+            this.#value_table = null;
+
+            this.#getValueTable();
+        });
+        this.#value_element.appendChild(search_button);
+
+        if (this.#value_table === null) {
+            return;
+        }
+
+        if (this.#value_table["show-add-new"]) {
             const add_button = document.createElement("button");
             add_button.innerText = "Add";
             add_button.type = "button";
             add_button.addEventListener("click", () => {
                 this.#addNewValue();
             });
-            this.#values_element.appendChild(add_button);
+            this.#value_element.appendChild(add_button);
         }
-
-        const refresh_button = document.createElement("button");
-        refresh_button.innerText = "Refresh";
-        refresh_button.type = "button";
-        refresh_button.addEventListener("click", () => {
-            this.#getValues(
-                true
-            );
-        });
-        this.#values_element.appendChild(refresh_button);
 
         const table_element = document.createElement("table");
 
         const thead_element = document.createElement("thead");
         const thead_tr_element = document.createElement("tr");
-        for (const column of table.columns) {
+        for (const column of this.#value_table.columns) {
             const th_element = document.createElement("th");
             th_element.innerText = column.label;
             thead_tr_element.appendChild(th_element);
@@ -993,10 +1039,10 @@ export class FluxFieldValueStorageUI {
         table_element.appendChild(thead_element);
 
         const tbody_element = document.createElement("tbody");
-        for (const row of table.rows) {
+        for (const row of this.#value_table.rows) {
             const tr_element = document.createElement("tr");
 
-            for (const column of table.columns) {
+            for (const column of this.#value_table.columns) {
                 const td_element = document.createElement("td");
                 td_element.innerText = row[column.key] ?? "-";
                 tr_element.appendChild(td_element);
@@ -1042,7 +1088,7 @@ export class FluxFieldValueStorageUI {
         }
         table_element.appendChild(tbody_element);
 
-        this.#values_element.appendChild(table_element);
+        this.#value_element.appendChild(table_element);
     }
 
     /**
@@ -1071,6 +1117,7 @@ export class FluxFieldValueStorageUI {
             await this.#request(
                 `field/move-down/${name}`,
                 null,
+                null,
                 METHOD_POST,
                 false
             );
@@ -1090,7 +1137,8 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#get_values = false;
+        this.#value_table_filter_form = null;
+        this.#value_table = null;
 
         return true;
     }
@@ -1109,6 +1157,7 @@ export class FluxFieldValueStorageUI {
         try {
             await this.#request(
                 `field/move-up/${name}`,
+                null,
                 null,
                 METHOD_POST,
                 false
@@ -1129,24 +1178,37 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#get_values = false;
+        this.#value_table_filter_form = null;
+        this.#value_table = null;
 
         return true;
     }
 
     /**
      * @param {string} route
+     * @param {{[key: string]: *} | null} query_params
      * @param {*} body
      * @param {string | null} method
      * @param {boolean | null} response_body
      * @returns {Promise<*>}
      */
-    async #request(route, body = null, method = null, response_body = null) {
+    async #request(route, query_params = null, body = null, method = null, response_body = null) {
+        const url = new URL(`${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/../api/${route}`, location.origin);
+
+        if (query_params !== null) {
+            for (const [
+                key,
+                value
+            ] of Object.entries(query_params)) {
+                url.searchParams.append(key, value);
+            }
+        }
+
         const _response_body = response_body ?? true;
 
         const response = await this.#flux_http_api.request(
             HttpClientRequest[body !== null ? "json" : "new"](
-                new URL(`${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/../api/${route}`, location.origin),
+                url,
                 body,
                 method,
                 null,

@@ -129,6 +129,20 @@ export class ValueService {
     }
 
     /**
+     * @returns {Promise<Input[]>}
+     */
+    async getValueTableFilterInputs() {
+        return [
+            {
+                label: "Name",
+                name: "name",
+                pattern: NAME_PATTERN.source,
+                type: INPUT_TYPE_TEXT
+            }
+        ];
+    }
+
+    /**
      * @param {Value} value
      * @returns {Promise<boolean>}
      */
