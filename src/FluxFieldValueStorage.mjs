@@ -1,4 +1,6 @@
 import { CONFIG_ENV_PREFIX } from "./Config/CONFIG.mjs";
+import { FIELD_NAME_PATTERN } from "./Field/FIELD_NAME.mjs";
+import { VALUE_NAME_PATTERN } from "./Value/VALUE_NAME.mjs";
 import { AUTHENTICATION_CONFIG_DEFAULT_USER, AUTHENTICATION_CONFIG_PASSWORD_KEY, AUTHENTICATION_CONFIG_USER_KEY } from "./Authentication/AUTHENTICATION_CONFIG.mjs";
 import { COLLECTION_NAME_FIELD, COLLECTION_NAME_VALUE } from "./Collection/COLLECTION_NAME.mjs";
 import { FLUX_MONGO_DB_CONNECTOR_DEFAULT_HOST, FLUX_MONGO_DB_CONNECTOR_DEFAULT_PORT } from "../../flux-mongo-db-connector/src/FLUX_MONGO_DB_CONNECTOR.mjs";
@@ -269,7 +271,7 @@ export class FluxFieldValueStorage {
 
         let values;
         if ((_filter.name ?? null) !== null) {
-            if (typeof _filter.name !== "string" || _filter.name === "") {
+            if (typeof _filter.name !== "string" || !VALUE_NAME_PATTERN.test(_filter.name)) {
                 return null;
             }
 
@@ -428,11 +430,13 @@ export class FluxFieldValueStorage {
     }
 
     /**
+     * @param {string} name
      * @param {Field} field
      * @returns {Promise<boolean>}
      */
-    async storeField(field) {
+    async storeField(name, field) {
         return (await this.#getFieldService()).storeField(
+            name,
             field
         );
     }
@@ -450,11 +454,11 @@ export class FluxFieldValueStorage {
             return false;
         }
 
-        if (typeof value.name !== "string" || value.name === "") {
+        if (typeof value.name !== "string" || !VALUE_NAME_PATTERN.test(value.name)) {
             return false;
         }
 
-        if (!Array.isArray(value.values) || value.values.length === 0 || value.values.some(field_value => field_value === null || typeof field_value !== "object" || typeof field_value.name !== "string" || field_value.name === "")) {
+        if (!Array.isArray(value.values) || value.values.length === 0 || value.values.some(field_value => field_value === null || typeof field_value !== "object" || typeof field_value.name !== "string" || !FIELD_NAME_PATTERN.test(field_value.name))) {
             return false;
         }
 

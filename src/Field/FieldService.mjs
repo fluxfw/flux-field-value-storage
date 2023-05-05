@@ -1,3 +1,5 @@
+import { FIELD_NAME_PATTERN } from "./FIELD_NAME.mjs";
+import { FIELD_POSITION_MOVE, FIELD_POSITION_START, FIELD_POSITION_VALUE } from "./FIELD_POSITION.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
@@ -8,14 +10,6 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_T
 /** @typedef {import("../Value/Value.mjs").Value} Value */
 /** @typedef {import("../Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
-
-const NAME_PATTERN = /^[\w\-.]+$/;
-
-const POSITION_START = 0;
-
-const POSITION_VALUE = 10;
-
-const POSITION_MOVE = POSITION_VALUE / 2;
 
 export class FieldService {
     /**
@@ -54,7 +48,7 @@ export class FieldService {
      * @returns {Promise<void>}
      */
     async deleteField(name) {
-        if (typeof name !== "string" || !NAME_PATTERN.test(name)) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
             return;
         }
 
@@ -71,7 +65,7 @@ export class FieldService {
      * @returns {Promise<Field | null>}
      */
     async getField(name, field_type_map = null) {
-        if (typeof name !== "string" || !NAME_PATTERN.test(name)) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
             return null;
         }
 
@@ -107,7 +101,7 @@ export class FieldService {
             return null;
         }
 
-        if (name !== null && (typeof name !== "string" || !NAME_PATTERN.test(name))) {
+        if (name !== null && (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name))) {
             return null;
         }
 
@@ -157,13 +151,9 @@ export class FieldService {
             {
                 label: "Name",
                 name: "name",
-                pattern: NAME_PATTERN.source,
-                ...field !== null ? {
-                    "read-only": true
-                } : {
-                    required: true,
-                    subtitle: "Only letters, digits, dashes, underscores or dots. Can not be changed anymore"
-                },
+                pattern: FIELD_NAME_PATTERN.source,
+                required: true,
+                subtitle: "Only letters, digits, dashes, underscores or dots",
                 type: INPUT_TYPE_TEXT,
                 value: field?.name ?? ""
             },
@@ -396,7 +386,7 @@ export class FieldService {
             _id: field.id
         }, {
             $set: {
-                position: field.position + POSITION_VALUE + POSITION_MOVE
+                position: field.position + FIELD_POSITION_VALUE + FIELD_POSITION_MOVE
             }
         });
 
@@ -423,7 +413,7 @@ export class FieldService {
             _id: field.id
         }, {
             $set: {
-                position: field.position - POSITION_VALUE - POSITION_MOVE
+                position: field.position - FIELD_POSITION_VALUE - FIELD_POSITION_MOVE
             }
         });
 
@@ -437,7 +427,7 @@ export class FieldService {
      * @returns {Promise<boolean>}
      */
     async setFieldPositions(names) {
-        if (!Array.isArray(names) || names.length === 0 || names.some(name => typeof name !== "string" || !NAME_PATTERN.test(name))) {
+        if (!Array.isArray(names) || names.length === 0 || names.some(name => typeof name !== "string" || !FIELD_NAME_PATTERN.test(name))) {
             return false;
         }
 
@@ -449,12 +439,12 @@ export class FieldService {
             return false;
         }
 
-        let position = POSITION_START;
+        let position = FIELD_POSITION_START;
 
         for (const name of names) {
             const field = fields.find(_field => _field.name === name);
 
-            position += POSITION_VALUE;
+            position += FIELD_POSITION_VALUE;
 
             if (position === field.position) {
                 continue;
@@ -473,10 +463,15 @@ export class FieldService {
     }
 
     /**
+     * @param {string} name
      * @param {Field} field
      * @returns {Promise<boolean>}
      */
-    async storeField(field) {
+    async storeField(name, field) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
+            return false;
+        }
+
         if (field === null || typeof field !== "object") {
             return false;
         }
@@ -485,7 +480,7 @@ export class FieldService {
             return false;
         }
 
-        if (typeof field.name !== "string" || !NAME_PATTERN.test(field.name)) {
+        if (typeof field.name !== "string" || !FIELD_NAME_PATTERN.test(field.name)) {
             return false;
         }
 
@@ -501,8 +496,15 @@ export class FieldService {
             return false;
         }
 
-        const previous_field = await this.getField(
+        if (name !== field.name && await this.getField(
             field.name,
+            false
+        ) !== null) {
+            return false;
+        }
+
+        const previous_field = await this.getField(
+            name,
             false
         );
 
@@ -541,19 +543,19 @@ export class FieldService {
     async #nextPosition() {
         return ((await this.#collection.find().sort({
             position: -1
-        }).limit(1).toArray())[0]?.position ?? POSITION_START) + POSITION_VALUE;
+        }).limit(1).toArray())[0]?.position ?? FIELD_POSITION_START) + FIELD_POSITION_VALUE;
     }
 
     /**
      * @returns {Promise<void>}
      */
     async #repositionFields() {
-        let position = POSITION_START;
+        let position = FIELD_POSITION_START;
 
         for (const field of await this.getFields(
             false
         )) {
-            position += POSITION_VALUE;
+            position += FIELD_POSITION_VALUE;
 
             if (position === field.position) {
                 continue;

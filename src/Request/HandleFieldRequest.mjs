@@ -485,10 +485,8 @@ export class HandleFieldRequest {
         }
 
         const ok = await this.#flux_field_value_storage.storeField(
-            {
-                ...field,
-                name
-            }
+            name,
+            field
         );
 
         if (!ok) {

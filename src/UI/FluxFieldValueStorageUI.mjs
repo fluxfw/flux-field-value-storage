@@ -796,6 +796,13 @@ export class FluxFieldValueStorageUI {
         });
         this.#field_element.appendChild(refresh_button);
 
+        if (this.#field_table.rows.length === 0) {
+            const no_fields_element = document.createElement("div");
+            no_fields_element.innerText = "No fields";
+            this.#field_element.appendChild(no_fields_element);
+            return;
+        }
+
         const table_element = document.createElement("table");
 
         const thead_element = document.createElement("thead");
@@ -956,13 +963,13 @@ export class FluxFieldValueStorageUI {
         try {
             if (this.#value_table_filter_form === null) {
                 this.#value_table_filter_form = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
-                    (await this.#request(
+                    await this.#request(
                         "value/get-table-filter-inputs"
-                    )).map(input => ({
-                        ...input,
-                        value: this.#value_table_filter?.find(value => value.name === input.name)?.value ?? input.value ?? null
-                    }))
+                    )
                 );
+                if (this.#value_table_filter !== null) {
+                    this.#value_table_filter_form.values = this.#value_table_filter;
+                }
             }
 
             if (this.#value_table_filter !== null) {
@@ -1021,6 +1028,13 @@ export class FluxFieldValueStorageUI {
                 this.#addNewValue();
             });
             this.#value_element.appendChild(add_button);
+        }
+
+        if (this.#value_table.rows.length === 0) {
+            const no_values_element = document.createElement("div");
+            no_values_element.innerText = "No values";
+            this.#value_element.appendChild(no_values_element);
+            return;
         }
 
         const table_element = document.createElement("table");

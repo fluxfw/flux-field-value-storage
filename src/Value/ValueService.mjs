@@ -1,10 +1,9 @@
 import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
+import { VALUE_NAME_PATTERN } from "./VALUE_NAME.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value.mjs").Value} Value */
-
-const NAME_PATTERN = /^[\w\-.]+$/;
 
 export class ValueService {
     /**
@@ -35,7 +34,7 @@ export class ValueService {
      * @returns {Promise<void>}
      */
     async deleteValue(name) {
-        if (typeof name !== "string" || !NAME_PATTERN.test(name)) {
+        if (typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) {
             return;
         }
 
@@ -66,7 +65,7 @@ export class ValueService {
             {
                 label: "Name",
                 name: "name",
-                pattern: NAME_PATTERN.source,
+                pattern: VALUE_NAME_PATTERN.source,
                 required: true,
                 subtitle: "Only letters, digits, dashes, underscores or dots. Can not be changed anymore",
                 type: INPUT_TYPE_TEXT
@@ -79,7 +78,7 @@ export class ValueService {
      * @returns {Promise<Value | null>}
      */
     async getValue(name) {
-        if (typeof name !== "string" || !NAME_PATTERN.test(name)) {
+        if (typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) {
             return null;
         }
 
@@ -136,7 +135,7 @@ export class ValueService {
             {
                 label: "Name",
                 name: "name",
-                pattern: NAME_PATTERN.source,
+                pattern: VALUE_NAME_PATTERN.source,
                 type: INPUT_TYPE_TEXT
             }
         ];
@@ -151,7 +150,7 @@ export class ValueService {
             return false;
         }
 
-        if (typeof value.name !== "string" || !NAME_PATTERN.test(value.name)) {
+        if (typeof value.name !== "string" || !VALUE_NAME_PATTERN.test(value.name)) {
             return false;
         }
 
