@@ -45,11 +45,11 @@ export class FieldService {
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async deleteField(name) {
         if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
-            return;
+            return false;
         }
 
         await this.#collection.deleteMany({
@@ -57,6 +57,8 @@ export class FieldService {
         });
 
         await this.#repositionFields();
+
+        return true;
     }
 
     /**
@@ -373,6 +375,10 @@ export class FieldService {
      * @returns {Promise<boolean>}
      */
     async moveFieldDown(name) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
+            return false;
+        }
+
         const field = await this.getField(
             name,
             false
@@ -400,6 +406,10 @@ export class FieldService {
      * @returns {Promise<boolean>}
      */
     async moveFieldUp(name) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
+            return false;
+        }
+
         const field = await this.getField(
             name,
             false

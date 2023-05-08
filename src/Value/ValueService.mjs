@@ -1,5 +1,5 @@
-import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 import { VALUE_NAME_PATTERN } from "./VALUE_NAME.mjs";
+import { INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
@@ -31,30 +31,34 @@ export class ValueService {
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async deleteValue(name) {
         if (typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) {
-            return;
+            return false;
         }
 
         await this.#collection.deleteMany({
             name
         });
+
+        return true;
     }
 
     /**
      * @param {string} field_id
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async deleteValueField(field_id) {
         if (typeof field_id !== "string" || field_id === "") {
-            return;
+            return false;
         }
 
         await this.#collection.deleteMany({
             "field-id": field_id
         });
+
+        return true;
     }
 
     /**
@@ -137,20 +141,36 @@ export class ValueService {
                 name: "name",
                 pattern: VALUE_NAME_PATTERN.source,
                 type: INPUT_TYPE_TEXT
+            },
+            {
+                label: "Has value",
+                name: "has-value",
+                options: [
+                    {
+                        label: "No",
+                        value: "false"
+                    },
+                    {
+                        label: "Yes",
+                        value: "true"
+                    }
+                ],
+                type: INPUT_TYPE_SELECT
             }
         ];
     }
 
     /**
+     * @param {string} name
      * @param {Value} value
      * @returns {Promise<boolean>}
      */
-    async storeValue(value) {
-        if (value === null || typeof value !== "object") {
+    async storeValue(name, value) {
+        if (typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) {
             return false;
         }
 
-        if (typeof value.name !== "string" || !VALUE_NAME_PATTERN.test(value.name)) {
+        if (value === null || typeof value !== "object") {
             return false;
         }
 
@@ -159,18 +179,18 @@ export class ValueService {
         }
 
         const previous_value = await this.getValue(
-            value.name
+            name
         );
 
         await this.deleteValue(
-            value.name
+            name
         );
 
         const id = previous_value?.id ?? crypto.randomUUID();
 
         await this.#collection.insertMany(value.values.map(field_value => ({
             id,
-            name: value.name,
+            name,
             _id: previous_value?.values?.find(previous_field_value => previous_field_value.id === field_value.id)?._id ?? crypto.randomUUID(),
             "field-id": field_value.id,
             value: field_value.value ?? null

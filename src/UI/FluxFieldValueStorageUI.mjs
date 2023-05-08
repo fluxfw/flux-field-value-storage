@@ -796,13 +796,6 @@ export class FluxFieldValueStorageUI {
         });
         this.#field_element.appendChild(refresh_button);
 
-        if (this.#field_table.rows.length === 0) {
-            const no_fields_element = document.createElement("div");
-            no_fields_element.innerText = "No fields";
-            this.#field_element.appendChild(no_fields_element);
-            return;
-        }
-
         const table_element = document.createElement("table");
 
         const thead_element = document.createElement("thead");
@@ -822,93 +815,105 @@ export class FluxFieldValueStorageUI {
         table_element.appendChild(thead_element);
 
         const tbody_element = document.createElement("tbody");
-        /**
-         * @returns {void}
-         */
-        function updateButtons() {
-            for (const tr_element of tbody_element.children) {
-                tr_element.querySelector("[data-move_up_button]").disabled = tr_element.previousElementSibling === null;
 
-                tr_element.querySelector("[data-move_down_button]").disabled = tr_element.nextElementSibling === null;
+        if (this.#field_table.rows.length > 0) {
+            const updateButtons = () => {
+                for (const tr_element of tbody_element.children) {
+                    tr_element.querySelector("[data-move_up_button]").disabled = tr_element.previousElementSibling === null;
+
+                    tr_element.querySelector("[data-move_down_button]").disabled = tr_element.nextElementSibling === null;
+                }
+            };
+
+            for (const row of this.#field_table.rows) {
+                const tr_element = document.createElement("tr");
+
+                for (const column of this.#field_table.columns) {
+                    const td_element = document.createElement("td");
+                    td_element.innerText = row[column.key] ?? "-";
+                    tr_element.appendChild(td_element);
+                }
+
+                const actions_td_element = document.createElement("td");
+
+                const edit_button = document.createElement("button");
+                edit_button.innerText = "Edit";
+                edit_button.type = "button";
+                edit_button.addEventListener("click", () => {
+                    this.#editField(
+                        row.name
+                    );
+                });
+                actions_td_element.appendChild(edit_button);
+
+                const move_up_button = document.createElement("button");
+                move_up_button.dataset.move_up_button = true;
+                move_up_button.innerText = "/\\";
+                move_up_button.type = "button";
+                move_up_button.addEventListener("click", async () => {
+                    if (!await this.#moveUpField(
+                        row.name
+                    )) {
+                        return;
+                    }
+
+                    tr_element.previousElementSibling?.before(tr_element);
+
+                    updateButtons();
+                });
+                actions_td_element.appendChild(move_up_button);
+
+                const move_down_button = document.createElement("button");
+                move_down_button.dataset.move_down_button = true;
+                move_down_button.innerText = "\\/";
+                move_down_button.type = "button";
+                move_down_button.addEventListener("click", async () => {
+                    if (!await this.#moveDownField(
+                        row.name
+                    )) {
+                        return;
+                    }
+
+                    tr_element.nextElementSibling?.after(tr_element);
+
+                    updateButtons();
+                });
+                actions_td_element.appendChild(move_down_button);
+
+                const delete_button = document.createElement("button");
+                delete_button.innerText = "Delete";
+                delete_button.type = "button";
+                delete_button.addEventListener("click", async () => {
+                    if (!await this.#deleteField(
+                        row.name
+                    )) {
+                        return;
+                    }
+
+                    tr_element.remove();
+
+                    updateButtons();
+                });
+                actions_td_element.appendChild(delete_button);
+
+                tr_element.appendChild(actions_td_element);
+
+                tbody_element.appendChild(tr_element);
             }
-        }
-        for (const row of this.#field_table.rows) {
+
+            updateButtons();
+        } else {
             const tr_element = document.createElement("tr");
 
-            for (const column of this.#field_table.columns) {
-                const td_element = document.createElement("td");
-                td_element.innerText = row[column.key] ?? "-";
-                tr_element.appendChild(td_element);
-            }
-
-            const actions_td_element = document.createElement("td");
-
-            const edit_button = document.createElement("button");
-            edit_button.innerText = "Edit";
-            edit_button.type = "button";
-            edit_button.addEventListener("click", () => {
-                this.#editField(
-                    row.name
-                );
-            });
-            actions_td_element.appendChild(edit_button);
-
-            const move_up_button = document.createElement("button");
-            move_up_button.dataset.move_up_button = true;
-            move_up_button.innerText = "/\\";
-            move_up_button.type = "button";
-            move_up_button.addEventListener("click", async () => {
-                if (!await this.#moveUpField(
-                    row.name
-                )) {
-                    return;
-                }
-
-                tr_element.previousElementSibling?.before(tr_element);
-
-                updateButtons();
-            });
-            actions_td_element.appendChild(move_up_button);
-
-            const move_down_button = document.createElement("button");
-            move_down_button.dataset.move_down_button = true;
-            move_down_button.innerText = "\\/";
-            move_down_button.type = "button";
-            move_down_button.addEventListener("click", async () => {
-                if (!await this.#moveDownField(
-                    row.name
-                )) {
-                    return;
-                }
-
-                tr_element.nextElementSibling?.after(tr_element);
-
-                updateButtons();
-            });
-            actions_td_element.appendChild(move_down_button);
-
-            const delete_button = document.createElement("button");
-            delete_button.innerText = "Delete";
-            delete_button.type = "button";
-            delete_button.addEventListener("click", async () => {
-                if (!await this.#deleteField(
-                    row.name
-                )) {
-                    return;
-                }
-
-                tr_element.remove();
-
-                updateButtons();
-            });
-            actions_td_element.appendChild(delete_button);
-
-            tr_element.appendChild(actions_td_element);
+            const td_element = document.createElement("td");
+            td_element.colSpan = this.#field_table.columns.length + 1;
+            td_element.innerText = "No fields";
+            tr_element.appendChild(td_element);
 
             tbody_element.appendChild(tr_element);
         }
+
         table_element.appendChild(tbody_element);
-        updateButtons();
 
         this.#field_element.appendChild(table_element);
     }
@@ -1030,13 +1035,6 @@ export class FluxFieldValueStorageUI {
             this.#value_element.appendChild(add_button);
         }
 
-        if (this.#value_table.rows.length === 0) {
-            const no_values_element = document.createElement("div");
-            no_values_element.innerText = "No values";
-            this.#value_element.appendChild(no_values_element);
-            return;
-        }
-
         const table_element = document.createElement("table");
 
         const thead_element = document.createElement("thead");
@@ -1053,56 +1051,71 @@ export class FluxFieldValueStorageUI {
         table_element.appendChild(thead_element);
 
         const tbody_element = document.createElement("tbody");
-        for (const row of this.#value_table.rows) {
+
+        if (this.#value_table.rows.length > 0) {
+            for (const row of this.#value_table.rows) {
+                const tr_element = document.createElement("tr");
+
+                for (const column of this.#value_table.columns) {
+                    const td_element = document.createElement("td");
+                    td_element.innerText = row[column.key] ?? "-";
+                    tr_element.appendChild(td_element);
+                }
+
+                const actions_td_element = document.createElement("td");
+
+                if (row["has-value"]) {
+                    const add_button = document.createElement("button");
+                    add_button.innerText = "Edit";
+                    add_button.type = "button";
+                    add_button.addEventListener("click", () => {
+                        this.#editValue(
+                            row.name
+                        );
+                    });
+                    actions_td_element.appendChild(add_button);
+
+                    const delete_button = document.createElement("button");
+                    delete_button.innerText = "Delete";
+                    delete_button.type = "button";
+                    delete_button.addEventListener("click", () => {
+                        this.#deleteValue(
+                            row.name
+                        );
+                    });
+                    actions_td_element.appendChild(delete_button);
+                } else {
+                    const edit_button = document.createElement("button");
+                    edit_button.innerText = "Add";
+                    edit_button.type = "button";
+                    edit_button.addEventListener("click", () => {
+                        this.#addValue(
+                            row.name
+                        );
+                    });
+                    actions_td_element.appendChild(edit_button);
+                }
+
+                tr_element.appendChild(actions_td_element);
+
+                tbody_element.appendChild(tr_element);
+            }
+        } else {
             const tr_element = document.createElement("tr");
 
-            for (const column of this.#value_table.columns) {
-                const td_element = document.createElement("td");
-                td_element.innerText = row[column.key] ?? "-";
-                tr_element.appendChild(td_element);
-            }
-
-            const actions_td_element = document.createElement("td");
-
-            if (row["has-value"]) {
-                const add_button = document.createElement("button");
-                add_button.innerText = "Edit";
-                add_button.type = "button";
-                add_button.addEventListener("click", () => {
-                    this.#editValue(
-                        row.name
-                    );
-                });
-                actions_td_element.appendChild(add_button);
-
-                const delete_button = document.createElement("button");
-                delete_button.innerText = "Delete";
-                delete_button.type = "button";
-                delete_button.addEventListener("click", () => {
-                    this.#deleteValue(
-                        row.name
-                    );
-                });
-                actions_td_element.appendChild(delete_button);
-            } else {
-                const edit_button = document.createElement("button");
-                edit_button.innerText = "Add";
-                edit_button.type = "button";
-                edit_button.addEventListener("click", () => {
-                    this.#addValue(
-                        row.name
-                    );
-                });
-                actions_td_element.appendChild(edit_button);
-            }
-
-            tr_element.appendChild(actions_td_element);
+            const td_element = document.createElement("td");
+            td_element.colSpan = this.#value_table.columns.length + 1;
+            td_element.innerText = "No values";
+            tr_element.appendChild(td_element);
 
             tbody_element.appendChild(tr_element);
         }
+
         table_element.appendChild(tbody_element);
 
         this.#value_element.appendChild(table_element);
+
+        table_element.scrollIntoView(true);
     }
 
     /**

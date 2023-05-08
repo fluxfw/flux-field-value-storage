@@ -83,9 +83,13 @@ export class FluxFieldValueStorage {
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async deleteField(name) {
+        if (typeof name !== "string" || !FIELD_NAME_PATTERN.test(name)) {
+            return false;
+        }
+
         const field_service = await this.#getFieldService();
 
         const field = await field_service.getField(
@@ -93,23 +97,29 @@ export class FluxFieldValueStorage {
             false
         );
 
-        await field_service.deleteField(
+        if (!await field_service.deleteField(
             name
-        );
+        )) {
+            return false;
+        }
 
         if (field !== null) {
-            await (await this.#getValueService()).deleteValueField(
+            if (!await (await this.#getValueService()).deleteValueField(
                 field.id
-            );
+            )) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async deleteValue(name) {
-        await (await this.#getValueService()).deleteValue(
+        return (await this.#getValueService()).deleteValue(
             name
         );
     }
@@ -264,6 +274,15 @@ export class FluxFieldValueStorage {
             return null;
         }
 
+        const filter_has_value = _filter["has-value"] === "true" ? true : _filter["has-value"] === "false" ? false : _filter["has-value"] ?? null;
+        if (filter_has_value !== null && typeof filter_has_value !== "boolean") {
+            return null;
+        }
+
+        if (filter_has_value !== null && !filter_has_value) {
+            return [];
+        }
+
         const field_type_service = await this.#getFieldTypeService();
         const value_service = await this.#getValueService();
 
@@ -323,9 +342,15 @@ export class FluxFieldValueStorage {
             return null;
         }
 
-        return (await this.#getFieldService()).getValueTable(
+        const table = await (await this.#getFieldService()).getValueTable(
             values
         );
+
+        if (filter?.["has-value"] === false || filter?.["has-value"] === "false") {
+            table["show-add-new"] = false;
+        }
+
+        return table;
     }
 
     /**
@@ -442,19 +467,17 @@ export class FluxFieldValueStorage {
     }
 
     /**
+     * @param {string} name
      * @param {Value} value
      * @param {boolean | null} keep_other_field_values
      * @returns {Promise<boolean>}
      */
-    async storeValue(value, keep_other_field_values = null) {
-        const field_type_service = await this.#getFieldTypeService();
-        const value_service = await this.#getValueService();
-
-        if (value === null || typeof value !== "object") {
+    async storeValue(name, value, keep_other_field_values = null) {
+        if (typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) {
             return false;
         }
 
-        if (typeof value.name !== "string" || !VALUE_NAME_PATTERN.test(value.name)) {
+        if (value === null || typeof value !== "object") {
             return false;
         }
 
@@ -462,8 +485,11 @@ export class FluxFieldValueStorage {
             return false;
         }
 
+        const field_type_service = await this.#getFieldTypeService();
+        const value_service = await this.#getValueService();
+
         const _field_values = keep_other_field_values ?? false ? Object.fromEntries((await value_service.getValue(
-            value.name
+            name
         )).values.map(field_value => [
             field_value.id,
             field_value.value
@@ -503,8 +529,8 @@ export class FluxFieldValueStorage {
         }
 
         return value_service.storeValue(
+            name,
             {
-                name: value.name,
                 values: field_values
             }
         );

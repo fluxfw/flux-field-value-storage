@@ -139,9 +139,14 @@ export class HandleFieldRequest {
             name
         ] = request.url_path_parts;
 
-        await this.#flux_field_value_storage.deleteField(
+        if (!await this.#flux_field_value_storage.deleteField(
             name
-        );
+        )) {
+            return HttpServerResponse.text(
+                "Invalid field",
+                STATUS_CODE_400
+            );
+        }
 
         return HttpServerResponse.new();
     }
@@ -356,14 +361,12 @@ export class HandleFieldRequest {
             name
         ] = request.url_path_parts;
 
-        const ok = await this.#flux_field_value_storage.moveFieldDown(
+        if (!await this.#flux_field_value_storage.moveFieldDown(
             name
-        );
-
-        if (!ok) {
+        )) {
             return HttpServerResponse.text(
-                "Field not found",
-                STATUS_CODE_404
+                "Invalid field",
+                STATUS_CODE_400
             );
         }
 
@@ -393,14 +396,12 @@ export class HandleFieldRequest {
             name
         ] = request.url_path_parts;
 
-        const ok = await this.#flux_field_value_storage.moveFieldUp(
+        if (!await this.#flux_field_value_storage.moveFieldUp(
             name
-        );
-
-        if (!ok) {
+        )) {
             return HttpServerResponse.text(
-                "Field not found",
-                STATUS_CODE_404
+                "Invalid field",
+                STATUS_CODE_400
             );
         }
 
@@ -430,18 +431,16 @@ export class HandleFieldRequest {
             console.error(error);
 
             return HttpServerResponse.text(
-                "Invalid body",
+                "Invalid positions",
                 STATUS_CODE_400
             );
         }
 
-        const ok = await this.#flux_field_value_storage.setFieldPositions(
+        if (!await this.#flux_field_value_storage.setFieldPositions(
             names
-        );
-
-        if (!ok) {
+        )) {
             return HttpServerResponse.text(
-                "Invalid fields",
+                "Invalid positions",
                 STATUS_CODE_400
             );
         }
@@ -479,17 +478,15 @@ export class HandleFieldRequest {
             console.error(error);
 
             return HttpServerResponse.text(
-                "Invalid body",
+                "Invalid field",
                 STATUS_CODE_400
             );
         }
 
-        const ok = await this.#flux_field_value_storage.storeField(
+        if (!await this.#flux_field_value_storage.storeField(
             name,
             field
-        );
-
-        if (!ok) {
+        )) {
             return HttpServerResponse.text(
                 "Invalid field",
                 STATUS_CODE_400

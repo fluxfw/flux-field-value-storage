@@ -127,9 +127,14 @@ export class HandleValueRequest {
             name
         ] = request.url_path_parts;
 
-        await this.#flux_field_value_storage.deleteValue(
+        if (!await this.#flux_field_value_storage.deleteValue(
             name
-        );
+        )) {
+            return HttpServerResponse.text(
+                "Invalid value",
+                STATUS_CODE_400
+            );
+        }
 
         return HttpServerResponse.new();
     }
@@ -395,20 +400,16 @@ export class HandleValueRequest {
             console.error(error);
 
             return HttpServerResponse.text(
-                "Invalid body",
+                "Invalid value",
                 STATUS_CODE_400
             );
         }
 
-        const ok = await this.#flux_field_value_storage.storeValue(
-            {
-                ...value,
-                name
-            },
+        if (!await this.#flux_field_value_storage.storeValue(
+            name,
+            value,
             request.method === METHOD_PATCH
-        );
-
-        if (!ok) {
+        )) {
             return HttpServerResponse.text(
                 "Invalid value",
                 STATUS_CODE_400

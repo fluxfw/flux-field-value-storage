@@ -2,7 +2,42 @@
 
 Field value storage
 
-## Config
+## Set up
+
+*You need to fill placeholders (Wrapped in `%`), create secret files and adjust to your needs (Applies everywhere)*
+
+### Mongo db
+
+You need a mongo db server
+
+[Set up](https://github.com/fluxfw/flux-mongo-db-connector/blob/main/README.md#set-up)
+
+You need to create a mongo db user `flux-field-value-storage` on database `flux-field-value-storage`
+
+### Docker
+
+#### Compose
+
+```yaml
+services:
+    flux-field-value-storage:
+        depends_on:
+            - mongo-db
+        environment:
+            - FLUX_FIELD_VALUE_STORAGE_AUTHENTICATION_PASSWORD_FILE=/run/secrets/flux_field_value_storage_password
+            - FLUX_FIELD_VALUE_STORAGE_MONGO_DB_PASSWORD_FILE=/run/secrets/mongo_db_flux_field_value_storage_password
+        image: fluxfw/flux-field-value-storage:%version%
+        secrets:
+            - flux_field_value_storage_password
+            - mongo_db_flux_field_value_storage_password
+secrets:
+    flux_field_value_storage_password:
+        file: ./data/secrets/flux_field_value_storage_password
+    mongo_db_flux_field_value_storage_password:
+        file: ./data/secrets/mongo_db_flux_field_value_storage_password
+```
+
+### Config
 
 | Config | Default value | Environment variable | Cli parameter | Config JSON file |
 | ------ | ------------- | -------------------- | ------------- | ---------------- |
