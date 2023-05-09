@@ -162,7 +162,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Add field",
-                "Error!",
+                "Couldn't load field!",
                 "OK"
             );
 
@@ -185,107 +185,117 @@ export class FluxFieldValueStorageUI {
                 value: "next"
             }
         ];
-
-        const type_result = await flux_overlay_element.wait(
-            null,
-            null,
-            false
-        );
-        if (type_result.button !== "next") {
-            flux_overlay_element.remove();
-            return;
-        }
-
-        await flux_overlay_element.setInputs(
-            true
-        );
-        flux_overlay_element.buttons = true;
-        await flux_overlay_element.showLoading();
-
-        let inputs;
-        try {
-            inputs = await this.#request(
-                `field/get-type-inputs/${type_result.inputs.find(value => value.name === "type").value}`
-            );
-        } catch (error) {
-            console.error(error);
-
-            flux_overlay_element.remove();
-
-            await FluxOverlayElement.alert(
-                "Add field",
-                "Error!",
-                "OK"
-            );
-
-            return;
-        }
-
-        await flux_overlay_element.showLoading(
-            false
-        );
-        await flux_overlay_element.setInputs(
-            inputs
-        );
-        flux_overlay_element.buttons = [
-            {
-                label: "Cancel",
-                value: "cancel"
-            },
-            {
-                label: "Add",
-                value: "add"
-            }
-        ];
-
-        const result = await flux_overlay_element.wait(
-            null,
-            null,
-            false
-        );
-        if (result.button !== "add") {
-            flux_overlay_element.remove();
-            return;
-        }
-
-        await flux_overlay_element.setInputs(
-            true
-        );
-        flux_overlay_element.buttons = true;
-        await flux_overlay_element.showLoading();
-
-        try {
-            await this.#request(
-                `field/store/${result.inputs.find(value => value.name === "name").value}`,
+        const addField = async () => {
+            const type_result = await flux_overlay_element.wait(
                 null,
-                Object.fromEntries(result.inputs.map(value => [
-                    value.name,
-                    value.value
-                ])),
-                METHOD_PUT,
+                null,
                 false
             );
-        } catch (error) {
-            console.error(error);
+            if (type_result.button !== "next") {
+                flux_overlay_element.remove();
+                return;
+            }
 
-            flux_overlay_element.remove();
-
-            await FluxOverlayElement.alert(
-                "Add field",
-                "Error!",
-                "OK"
+            flux_overlay_element.message = "";
+            await flux_overlay_element.setInputs(
+                true
             );
+            flux_overlay_element.buttons = true;
+            await flux_overlay_element.showLoading();
 
-            return;
-        }
+            let inputs;
+            try {
+                inputs = await this.#request(
+                    `field/get-type-inputs/${type_result.inputs.find(value => value.name === "type").value}`
+                );
+            } catch (error) {
+                console.error(error);
 
-        flux_overlay_element.remove();
+                await flux_overlay_element.showLoading(
+                    false
+                );
+                flux_overlay_element.message = "Couldn't load field!";
+                await flux_overlay_element.setInputs(
+                    false
+                );
+                flux_overlay_element.buttons = false;
+                addField();
 
-        this.#field_table = null;
-        this.#value_table_filter_form = null;
-        this.#value_table = null;
+                return;
+            }
 
-        this.#getFieldTable();
+            await flux_overlay_element.showLoading(
+                false
+            );
+            await flux_overlay_element.setInputs(
+                inputs
+            );
+            flux_overlay_element.buttons = [
+                {
+                    label: "Cancel",
+                    value: "cancel"
+                },
+                {
+                    label: "Add",
+                    value: "add"
+                }
+            ];
+            const addField2 = async () => {
+                const result = await flux_overlay_element.wait(
+                    null,
+                    null,
+                    false
+                );
+                if (result.button !== "add") {
+                    flux_overlay_element.remove();
+                    return;
+                }
+
+                flux_overlay_element.message = "";
+                await flux_overlay_element.setInputs(
+                    true
+                );
+                flux_overlay_element.buttons = true;
+                await flux_overlay_element.showLoading();
+
+                try {
+                    await this.#request(
+                        `field/store/${result.inputs.find(value => value.name === "name").value}`,
+                        null,
+                        Object.fromEntries(result.inputs.map(value => [
+                            value.name,
+                            value.value
+                        ])),
+                        METHOD_PUT,
+                        false
+                    );
+                } catch (error) {
+                    console.error(error);
+
+                    await flux_overlay_element.showLoading(
+                        false
+                    );
+                    flux_overlay_element.message = "Couldn't add field!";
+                    await flux_overlay_element.setInputs(
+                        false
+                    );
+                    flux_overlay_element.buttons = false;
+                    addField2();
+
+                    return;
+                }
+
+                flux_overlay_element.remove();
+
+                this.#field_table = null;
+                this.#value_table_filter_form = null;
+                this.#value_table = null;
+
+                this.#getFieldTable();
+            };
+            addField2();
+        };
+        addField();
     }
 
     /**
@@ -314,7 +324,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Add value",
-                "Error!",
+                "Couldn't load value!",
                 "OK"
             );
 
@@ -339,7 +349,6 @@ export class FluxFieldValueStorageUI {
         ];
 
         const result = await flux_overlay_element.wait();
-
         if (result.button !== "next") {
             return;
         }
@@ -376,7 +385,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Add value",
-                "Error!",
+                "Couldn't load value!",
                 "OK"
             );
 
@@ -399,52 +408,57 @@ export class FluxFieldValueStorageUI {
                 value: "add"
             }
         ];
-
-        const result = await flux_overlay_element.wait(
-            null,
-            null,
-            false
-        );
-        if (result.button !== "add") {
-            flux_overlay_element.remove();
-            return;
-        }
-
-        await flux_overlay_element.setInputs(
-            true
-        );
-        flux_overlay_element.buttons = true;
-        await flux_overlay_element.showLoading();
-
-        try {
-            await this.#request(
-                `value/store/${name}`,
+        const addValue = async () => {
+            const result = await flux_overlay_element.wait(
                 null,
-                {
-                    values: result.inputs
-                },
-                METHOD_PUT,
+                null,
                 false
             );
-        } catch (error) {
-            console.error(error);
+            if (result.button !== "add") {
+                flux_overlay_element.remove();
+                return;
+            }
+
+            flux_overlay_element.message = "";
+            await flux_overlay_element.setInputs(
+                true
+            );
+            flux_overlay_element.buttons = true;
+            await flux_overlay_element.showLoading();
+
+            try {
+                await this.#request(
+                    `value/store/${name}`,
+                    null,
+                    {
+                        values: result.inputs
+                    },
+                    METHOD_PUT,
+                    false
+                );
+            } catch (error) {
+                console.error(error);
+
+                await flux_overlay_element.showLoading(
+                    false
+                );
+                flux_overlay_element.message = "Couldn't save value!";
+                await flux_overlay_element.setInputs(
+                    false
+                );
+                flux_overlay_element.buttons = false;
+                addValue();
+
+                return;
+            }
 
             flux_overlay_element.remove();
 
-            await FluxOverlayElement.alert(
-                "Add value",
-                "Error!",
-                "OK"
-            );
+            this.#value_table = null;
 
-            return;
-        }
-
-        flux_overlay_element.remove();
-
-        this.#value_table = null;
-
-        this.#getValueTable();
+            this.#getValueTable();
+        };
+        addValue();
     }
 
     /**
@@ -482,7 +496,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Delete field",
-                "Error!",
+                "Couldn't delete field!",
                 "OK"
             );
 
@@ -532,7 +546,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Delete value",
-                "Error!",
+                "Couldn't delete value!",
                 "OK"
             );
 
@@ -573,7 +587,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Edit field",
-                "Error!",
+                "Couldn't load field!",
                 "OK"
             );
 
@@ -596,55 +610,60 @@ export class FluxFieldValueStorageUI {
                 value: "save"
             }
         ];
-
-        const result = await flux_overlay_element.wait(
-            null,
-            null,
-            false
-        );
-        if (result.button !== "save") {
-            flux_overlay_element.remove();
-            return;
-        }
-
-        await flux_overlay_element.setInputs(
-            true
-        );
-        flux_overlay_element.buttons = true;
-        await flux_overlay_element.showLoading();
-
-        try {
-            await this.#request(
-                `field/store/${name}`,
+        const editField = async () => {
+            const result = await flux_overlay_element.wait(
                 null,
-                Object.fromEntries(result.inputs.map(value => [
-                    value.name,
-                    value.value
-                ])),
-                METHOD_PUT,
+                null,
                 false
             );
-        } catch (error) {
-            console.error(error);
+            if (result.button !== "save") {
+                flux_overlay_element.remove();
+                return;
+            }
+
+            flux_overlay_element.message = "";
+            await flux_overlay_element.setInputs(
+                true
+            );
+            flux_overlay_element.buttons = true;
+            await flux_overlay_element.showLoading();
+
+            try {
+                await this.#request(
+                    `field/store/${name}`,
+                    null,
+                    Object.fromEntries(result.inputs.map(value => [
+                        value.name,
+                        value.value
+                    ])),
+                    METHOD_PUT,
+                    false
+                );
+            } catch (error) {
+                console.error(error);
+
+                await flux_overlay_element.showLoading(
+                    false
+                );
+                flux_overlay_element.message = "Couldn't save field!";
+                await flux_overlay_element.setInputs(
+                    false
+                );
+                flux_overlay_element.buttons = false;
+                editField();
+
+                return;
+            }
 
             flux_overlay_element.remove();
 
-            await FluxOverlayElement.alert(
-                "Edit field",
-                "Error!",
-                "OK"
-            );
+            this.#field_table = null;
+            this.#value_table_filter_form = null;
+            this.#value_table = null;
 
-            return;
-        }
-
-        flux_overlay_element.remove();
-
-        this.#field_table = null;
-        this.#value_table_filter_form = null;
-        this.#value_table = null;
-
-        this.#getFieldTable();
+            this.#getFieldTable();
+        };
+        editField();
     }
 
     /**
@@ -674,7 +693,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Edit value",
-                "Error!",
+                "Couldn't load value!",
                 "OK"
             );
 
@@ -697,52 +716,57 @@ export class FluxFieldValueStorageUI {
                 value: "save"
             }
         ];
-
-        const result = await flux_overlay_element.wait(
-            null,
-            null,
-            false
-        );
-        if (result.button !== "save") {
-            flux_overlay_element.remove();
-            return;
-        }
-
-        await flux_overlay_element.setInputs(
-            true
-        );
-        flux_overlay_element.buttons = true;
-        await flux_overlay_element.showLoading();
-
-        try {
-            await this.#request(
-                `value/store/${name}`,
+        const editValue = async () => {
+            const result = await flux_overlay_element.wait(
                 null,
-                {
-                    values: result.inputs
-                },
-                METHOD_PUT,
+                null,
                 false
             );
-        } catch (error) {
-            console.error(error);
+            if (result.button !== "save") {
+                flux_overlay_element.remove();
+                return;
+            }
+
+            flux_overlay_element.message = "";
+            await flux_overlay_element.setInputs(
+                true
+            );
+            flux_overlay_element.buttons = true;
+            await flux_overlay_element.showLoading();
+
+            try {
+                await this.#request(
+                    `value/store/${name}`,
+                    null,
+                    {
+                        values: result.inputs
+                    },
+                    METHOD_PUT,
+                    false
+                );
+            } catch (error) {
+                console.error(error);
+
+                await flux_overlay_element.showLoading(
+                    false
+                );
+                flux_overlay_element.message = "Couldn't save value!";
+                await flux_overlay_element.setInputs(
+                    false
+                );
+                flux_overlay_element.buttons = false;
+                editValue();
+
+                return;
+            }
 
             flux_overlay_element.remove();
 
-            await FluxOverlayElement.alert(
-                "Edit value",
-                "Error!",
-                "OK"
-            );
+            this.#value_table = null;
 
-            return;
-        }
-
-        flux_overlay_element.remove();
-
-        this.#value_table = null;
-
-        this.#getValueTable();
+            this.#getValueTable();
+        };
+        editValue();
     }
 
     /**
@@ -766,7 +790,7 @@ export class FluxFieldValueStorageUI {
             console.error(error);
 
             const error_element = document.createElement("div");
-            error_element.innerText = "Can't load fields!";
+            error_element.innerText = "Couldn't load fields!";
             this.#field_element.appendChild(error_element);
 
             return;
@@ -965,16 +989,19 @@ export class FluxFieldValueStorageUI {
         const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
         this.#value_element.appendChild(flux_loading_spinner_element);
 
+        let error_element = null;
         try {
             if (this.#value_table_filter_form === null) {
-                this.#value_table_filter_form = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+                const table_filter_form = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
                     await this.#request(
                         "value/get-table-filter-inputs"
                     )
                 );
                 if (this.#value_table_filter !== null) {
-                    this.#value_table_filter_form.values = this.#value_table_filter;
+                    table_filter_form.values = this.#value_table_filter;
                 }
+
+                this.#value_table_filter_form = table_filter_form;
             }
 
             if (this.#value_table_filter !== null) {
@@ -993,15 +1020,19 @@ export class FluxFieldValueStorageUI {
         } catch (error) {
             console.error(error);
 
-            const error_element = document.createElement("div");
-            error_element.innerText = "Can't load values!";
-            this.#value_element.appendChild(error_element);
+            error_element = document.createElement("div");
+            error_element.innerText = "Couldn't load values!";
+        }
 
+        this.#flux_button_group_element.disabled = false;
+
+        flux_loading_spinner_element.remove();
+
+        if (this.#value_table_filter_form === null) {
+            if (error_element !== null) {
+                this.#value_element.appendChild(error_element);
+            }
             return;
-        } finally {
-            this.#flux_button_group_element.disabled = false;
-
-            flux_loading_spinner_element.remove();
         }
 
         this.#value_element.appendChild(this.#value_table_filter_form);
@@ -1022,6 +1053,9 @@ export class FluxFieldValueStorageUI {
         this.#value_element.appendChild(search_button);
 
         if (this.#value_table === null) {
+            if (error_element !== null) {
+                this.#value_element.appendChild(error_element);
+            }
             return;
         }
 
@@ -1155,7 +1189,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Move field down",
-                "Error!",
+                "Couldn't move field!",
                 "OK"
             );
 
@@ -1196,7 +1230,7 @@ export class FluxFieldValueStorageUI {
 
             await FluxOverlayElement.alert(
                 "Move field up",
-                "Error!",
+                "Couldn't move field!",
                 "OK"
             );
 
@@ -1245,7 +1279,7 @@ export class FluxFieldValueStorageUI {
         );
 
         if (!_response_body) {
-            return null;
+            return;
         }
 
         return response.body.json();
