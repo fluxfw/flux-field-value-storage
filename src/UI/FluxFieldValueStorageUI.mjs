@@ -442,7 +442,7 @@ export class FluxFieldValueStorageUI {
                 await flux_overlay_element.showLoading(
                     false
                 );
-                flux_overlay_element.message = "Couldn't save value!";
+                flux_overlay_element.message = "Couldn't add value!";
                 await flux_overlay_element.setInputs(
                     false
                 );
