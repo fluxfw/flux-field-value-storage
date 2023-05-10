@@ -13,9 +13,6 @@ FROM node:20-alpine
 
 USER node:node
 
-EXPOSE 443
-EXPOSE 80
-
 ENTRYPOINT ["/flux-field-value-storage/bin/server.mjs"]
 
 COPY --from=build /build /
