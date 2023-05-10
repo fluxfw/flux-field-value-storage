@@ -55,7 +55,7 @@ export class FluxFieldValueStorageUI {
     /**
      * @type {FluxFormElement | null}
      */
-    #value_table_filter_form = null;
+    #value_table_filter_form_element = null;
     /**
      * @type {HTMLDivElement | null}
      */
@@ -288,7 +288,7 @@ export class FluxFieldValueStorageUI {
                 flux_overlay_element.remove();
 
                 this.#field_table = null;
-                this.#value_table_filter_form = null;
+                this.#value_table_filter_form_element = null;
                 this.#value_table = null;
 
                 this.#getFieldTable();
@@ -505,7 +505,7 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#value_table_filter_form = null;
+        this.#value_table_filter_form_element = null;
         this.#value_table = null;
 
         return true;
@@ -658,7 +658,7 @@ export class FluxFieldValueStorageUI {
             flux_overlay_element.remove();
 
             this.#field_table = null;
-            this.#value_table_filter_form = null;
+            this.#value_table_filter_form_element = null;
             this.#value_table = null;
 
             this.#getFieldTable();
@@ -813,7 +813,7 @@ export class FluxFieldValueStorageUI {
         refresh_button.type = "button";
         refresh_button.addEventListener("click", () => {
             this.#field_table = null;
-            this.#value_table_filter_form = null;
+            this.#value_table_filter_form_element = null;
             this.#value_table = null;
 
             this.#getFieldTable();
@@ -991,17 +991,17 @@ export class FluxFieldValueStorageUI {
 
         let error_element = null;
         try {
-            if (this.#value_table_filter_form === null) {
-                const table_filter_form = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+            if (this.#value_table_filter_form_element === null) {
+                const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
                     await this.#request(
                         "value/get-table-filter-inputs"
                     )
                 );
                 if (this.#value_table_filter !== null) {
-                    table_filter_form.values = this.#value_table_filter;
+                    table_filter_form_element.values = this.#value_table_filter;
                 }
 
-                this.#value_table_filter_form = table_filter_form;
+                this.#value_table_filter_form_element = table_filter_form_element;
             }
 
             if (this.#value_table_filter !== null) {
@@ -1028,24 +1028,24 @@ export class FluxFieldValueStorageUI {
 
         flux_loading_spinner_element.remove();
 
-        if (this.#value_table_filter_form === null) {
+        if (this.#value_table_filter_form_element === null) {
             if (error_element !== null) {
                 this.#value_element.appendChild(error_element);
             }
             return;
         }
 
-        this.#value_element.appendChild(this.#value_table_filter_form);
+        this.#value_element.appendChild(this.#value_table_filter_form_element);
 
         const search_button = document.createElement("button");
         search_button.innerText = "Search";
         search_button.type = "button";
         search_button.addEventListener("click", () => {
-            if (!this.#value_table_filter_form.validateInputs()) {
+            if (!this.#value_table_filter_form_element.validate()) {
                 return;
             }
 
-            this.#value_table_filter = this.#value_table_filter_form.values;
+            this.#value_table_filter = this.#value_table_filter_form_element.values;
             this.#value_table = null;
 
             this.#getValueTable();
@@ -1198,7 +1198,7 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#value_table_filter_form = null;
+        this.#value_table_filter_form_element = null;
         this.#value_table = null;
 
         return true;
@@ -1239,7 +1239,7 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#value_table_filter_form = null;
+        this.#value_table_filter_form_element = null;
         this.#value_table = null;
 
         return true;

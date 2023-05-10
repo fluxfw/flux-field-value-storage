@@ -1,3 +1,4 @@
+import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "../../../flux-form/src/ADDITIONAL_VALIDATION_TYPE.mjs";
 import { FIELD_TYPE_REGULAR_EXPRESSION } from "./FIELD_TYPE.mjs";
 import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
@@ -36,6 +37,7 @@ export class RegularExpressionFieldType {
                 value: field?.placeholder ?? ""
             },
             {
+                "additional-validation-type": ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION,
                 label: "Regular expression",
                 name: "regular-expression",
                 required: true,
