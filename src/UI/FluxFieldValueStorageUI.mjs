@@ -206,18 +206,9 @@ export class FluxFieldValueStorageUI {
 
             let inputs;
             try {
-                inputs = (await this.#request(
+                inputs = await this.#request(
                     `field/get-type-inputs/${type_result.inputs.find(value => value.name === "type").value}`
-                )).map(input => (input.type === INPUT_TYPE_ENTRIES && (input.value ?? null) !== null ? {
-                    ...input,
-                    value: input.value.map(value => Object.entries(value).map(([
-                        name,
-                        _value
-                    ]) => ({
-                        name,
-                        value: _value
-                    })))
-                } : input));
+                );
             } catch (error) {
                 console.error(error);
 
@@ -590,18 +581,9 @@ export class FluxFieldValueStorageUI {
 
         let inputs;
         try {
-            inputs = (await this.#request(
+            inputs = await this.#request(
                 `field/get-inputs/${name}`
-            )).map(input => (input.type === INPUT_TYPE_ENTRIES && (input.value ?? null) !== null ? {
-                ...input,
-                value: input.value.map(value => Object.entries(value).map(([
-                    _name,
-                    _value
-                ]) => ({
-                    name: _name,
-                    value: _value
-                })))
-            } : input));
+            );
         } catch (error) {
             console.error(error);
 

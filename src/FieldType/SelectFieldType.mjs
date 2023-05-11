@@ -32,14 +32,14 @@ export class SelectFieldType {
             {
                 entries: [
                     {
-                        label: "Label",
-                        name: "label",
+                        label: "Value",
+                        name: "value",
                         required: true,
                         type: INPUT_TYPE_TEXT
                     },
                     {
-                        label: "Value",
-                        name: "value",
+                        label: "Label",
+                        name: "label",
                         required: true,
                         type: INPUT_TYPE_TEXT
                     }
@@ -48,7 +48,13 @@ export class SelectFieldType {
                 name: "options",
                 required: true,
                 type: INPUT_TYPE_ENTRIES,
-                value: field?.options ?? []
+                value: field?.options?.map(option => Object.entries(option).map(([
+                    name,
+                    value
+                ]) => ({
+                    name,
+                    value
+                }))) ?? []
             }
         ];
     }
@@ -154,7 +160,7 @@ export class SelectFieldType {
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
-        if (!Array.isArray(field.options) || field.options.length === 0 || field.options.some(option => option === null || typeof option !== "object" || typeof option.label !== "string" || option.label === "" || typeof option.value !== "string" || option.value === "") || new Set(field.options.map(option => option.value)).size !== field.options.length) {
+        if (!Array.isArray(field.options) || field.options.length === 0 || field.options.some(option => option === null || typeof option !== "object" || typeof option.value !== "string" || option.value === "" || typeof option.label !== "string" || option.label === "") || new Set(field.options.map(option => option.value)).size !== field.options.length) {
             return false;
         }
 
