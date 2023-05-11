@@ -1,6 +1,7 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
+import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
 
 /** @typedef {import("../Field/FieldTable.mjs").FieldTable} FieldTable */
@@ -205,9 +206,18 @@ export class FluxFieldValueStorageUI {
 
             let inputs;
             try {
-                inputs = await this.#request(
+                inputs = (await this.#request(
                     `field/get-type-inputs/${type_result.inputs.find(value => value.name === "type").value}`
-                );
+                )).map(input => (input.type === INPUT_TYPE_ENTRIES && (input.value ?? null) !== null ? {
+                    ...input,
+                    value: input.value.map(value => Object.entries(value).map(([
+                        name,
+                        _value
+                    ]) => ({
+                        name,
+                        value: _value
+                    })))
+                } : input));
             } catch (error) {
                 console.error(error);
 
@@ -264,7 +274,10 @@ export class FluxFieldValueStorageUI {
                         null,
                         Object.fromEntries(result.inputs.map(value => [
                             value.name,
-                            value.value
+                            inputs.find(input => input.name === value.name)?.type === INPUT_TYPE_ENTRIES ? value.value.map(_value => Object.fromEntries(_value.map(__value => [
+                                __value.name,
+                                __value.value
+                            ]))) : value.value
                         ])),
                         METHOD_PUT,
                         false
@@ -577,9 +590,18 @@ export class FluxFieldValueStorageUI {
 
         let inputs;
         try {
-            inputs = await this.#request(
+            inputs = (await this.#request(
                 `field/get-inputs/${name}`
-            );
+            )).map(input => (input.type === INPUT_TYPE_ENTRIES && (input.value ?? null) !== null ? {
+                ...input,
+                value: input.value.map(value => Object.entries(value).map(([
+                    _name,
+                    _value
+                ]) => ({
+                    name: _name,
+                    value: _value
+                })))
+            } : input));
         } catch (error) {
             console.error(error);
 
@@ -634,7 +656,10 @@ export class FluxFieldValueStorageUI {
                     null,
                     Object.fromEntries(result.inputs.map(value => [
                         value.name,
-                        value.value
+                        inputs.find(input => input.name === value.name)?.type === INPUT_TYPE_ENTRIES ? value.value.map(_value => Object.fromEntries(_value.map(__value => [
+                            __value.name,
+                            __value.value
+                        ]))) : value.value
                     ])),
                     METHOD_PUT,
                     false
@@ -800,25 +825,25 @@ export class FluxFieldValueStorageUI {
             flux_loading_spinner_element.remove();
         }
 
-        const add_button = document.createElement("button");
-        add_button.innerText = "Add";
-        add_button.type = "button";
-        add_button.addEventListener("click", () => {
+        const add_button_element = document.createElement("button");
+        add_button_element.innerText = "Add";
+        add_button_element.type = "button";
+        add_button_element.addEventListener("click", () => {
             this.#addField();
         });
-        this.#field_element.appendChild(add_button);
+        this.#field_element.appendChild(add_button_element);
 
-        const refresh_button = document.createElement("button");
-        refresh_button.innerText = "Refresh";
-        refresh_button.type = "button";
-        refresh_button.addEventListener("click", () => {
+        const refresh_button_element = document.createElement("button");
+        refresh_button_element.innerText = "Refresh";
+        refresh_button_element.type = "button";
+        refresh_button_element.addEventListener("click", () => {
             this.#field_table = null;
             this.#value_table_filter_form_element = null;
             this.#value_table = null;
 
             this.#getFieldTable();
         });
-        this.#field_element.appendChild(refresh_button);
+        this.#field_element.appendChild(refresh_button_element);
 
         const table_element = document.createElement("table");
 
@@ -860,21 +885,21 @@ export class FluxFieldValueStorageUI {
 
                 const actions_td_element = document.createElement("td");
 
-                const edit_button = document.createElement("button");
-                edit_button.innerText = "Edit";
-                edit_button.type = "button";
-                edit_button.addEventListener("click", () => {
+                const edit_button_element = document.createElement("button");
+                edit_button_element.innerText = "Edit";
+                edit_button_element.type = "button";
+                edit_button_element.addEventListener("click", () => {
                     this.#editField(
                         row.name
                     );
                 });
-                actions_td_element.appendChild(edit_button);
+                actions_td_element.appendChild(edit_button_element);
 
-                const move_up_button = document.createElement("button");
-                move_up_button.dataset.move_up_button = true;
-                move_up_button.innerText = "/\\";
-                move_up_button.type = "button";
-                move_up_button.addEventListener("click", async () => {
+                const move_up_button_element = document.createElement("button");
+                move_up_button_element.dataset.move_up_button = true;
+                move_up_button_element.innerText = "/\\";
+                move_up_button_element.type = "button";
+                move_up_button_element.addEventListener("click", async () => {
                     if (!await this.#moveUpField(
                         row.name
                     )) {
@@ -885,13 +910,13 @@ export class FluxFieldValueStorageUI {
 
                     updateButtons();
                 });
-                actions_td_element.appendChild(move_up_button);
+                actions_td_element.appendChild(move_up_button_element);
 
-                const move_down_button = document.createElement("button");
-                move_down_button.dataset.move_down_button = true;
-                move_down_button.innerText = "\\/";
-                move_down_button.type = "button";
-                move_down_button.addEventListener("click", async () => {
+                const move_down_button_element = document.createElement("button");
+                move_down_button_element.dataset.move_down_button = true;
+                move_down_button_element.innerText = "\\/";
+                move_down_button_element.type = "button";
+                move_down_button_element.addEventListener("click", async () => {
                     if (!await this.#moveDownField(
                         row.name
                     )) {
@@ -902,12 +927,12 @@ export class FluxFieldValueStorageUI {
 
                     updateButtons();
                 });
-                actions_td_element.appendChild(move_down_button);
+                actions_td_element.appendChild(move_down_button_element);
 
-                const delete_button = document.createElement("button");
-                delete_button.innerText = "Delete";
-                delete_button.type = "button";
-                delete_button.addEventListener("click", async () => {
+                const delete_button_element = document.createElement("button");
+                delete_button_element.innerText = "Delete";
+                delete_button_element.type = "button";
+                delete_button_element.addEventListener("click", async () => {
                     if (!await this.#deleteField(
                         row.name
                     )) {
@@ -918,7 +943,7 @@ export class FluxFieldValueStorageUI {
 
                     updateButtons();
                 });
-                actions_td_element.appendChild(delete_button);
+                actions_td_element.appendChild(delete_button_element);
 
                 tr_element.appendChild(actions_td_element);
 
@@ -1037,10 +1062,10 @@ export class FluxFieldValueStorageUI {
 
         this.#value_element.appendChild(this.#value_table_filter_form_element);
 
-        const search_button = document.createElement("button");
-        search_button.innerText = "Search";
-        search_button.type = "button";
-        search_button.addEventListener("click", () => {
+        const search_button_element = document.createElement("button");
+        search_button_element.innerText = "Search";
+        search_button_element.type = "button";
+        search_button_element.addEventListener("click", () => {
             if (!this.#value_table_filter_form_element.validate()) {
                 return;
             }
@@ -1050,7 +1075,7 @@ export class FluxFieldValueStorageUI {
 
             this.#getValueTable();
         });
-        this.#value_element.appendChild(search_button);
+        this.#value_element.appendChild(search_button_element);
 
         if (this.#value_table === null) {
             if (error_element !== null) {
@@ -1060,13 +1085,13 @@ export class FluxFieldValueStorageUI {
         }
 
         if (this.#value_table["show-add-new"]) {
-            const add_button = document.createElement("button");
-            add_button.innerText = "Add";
-            add_button.type = "button";
-            add_button.addEventListener("click", () => {
+            const add_button_element = document.createElement("button");
+            add_button_element.innerText = "Add";
+            add_button_element.type = "button";
+            add_button_element.addEventListener("click", () => {
                 this.#addNewValue();
             });
-            this.#value_element.appendChild(add_button);
+            this.#value_element.appendChild(add_button_element);
         }
 
         const table_element = document.createElement("table");
@@ -1099,35 +1124,35 @@ export class FluxFieldValueStorageUI {
                 const actions_td_element = document.createElement("td");
 
                 if (row["has-value"]) {
-                    const add_button = document.createElement("button");
-                    add_button.innerText = "Edit";
-                    add_button.type = "button";
-                    add_button.addEventListener("click", () => {
+                    const add_button_element = document.createElement("button");
+                    add_button_element.innerText = "Edit";
+                    add_button_element.type = "button";
+                    add_button_element.addEventListener("click", () => {
                         this.#editValue(
                             row.name
                         );
                     });
-                    actions_td_element.appendChild(add_button);
+                    actions_td_element.appendChild(add_button_element);
 
-                    const delete_button = document.createElement("button");
-                    delete_button.innerText = "Delete";
-                    delete_button.type = "button";
-                    delete_button.addEventListener("click", () => {
+                    const delete_button_element = document.createElement("button");
+                    delete_button_element.innerText = "Delete";
+                    delete_button_element.type = "button";
+                    delete_button_element.addEventListener("click", () => {
                         this.#deleteValue(
                             row.name
                         );
                     });
-                    actions_td_element.appendChild(delete_button);
+                    actions_td_element.appendChild(delete_button_element);
                 } else {
-                    const edit_button = document.createElement("button");
-                    edit_button.innerText = "Add";
-                    edit_button.type = "button";
-                    edit_button.addEventListener("click", () => {
+                    const edit_button_element = document.createElement("button");
+                    edit_button_element.innerText = "Add";
+                    edit_button_element.type = "button";
+                    edit_button_element.addEventListener("click", () => {
                         this.#addValue(
                             row.name
                         );
                     });
-                    actions_td_element.appendChild(edit_button);
+                    actions_td_element.appendChild(edit_button_element);
                 }
 
                 tr_element.appendChild(actions_td_element);
@@ -1148,8 +1173,6 @@ export class FluxFieldValueStorageUI {
         table_element.appendChild(tbody_element);
 
         this.#value_element.appendChild(table_element);
-
-        table_element.scrollIntoView(true);
     }
 
     /**

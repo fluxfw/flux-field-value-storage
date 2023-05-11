@@ -12,9 +12,13 @@ export const FIELD_TYPE_INTEGER = "integer";
 
 export const FIELD_TYPE_MULTILINE_TEXT = "multiline-text";
 
+export const FIELD_TYPE_MULTIPLE_SELECT = "multiple-select";
+
 export const FIELD_TYPE_PASSWORD = "password";
 
 export const FIELD_TYPE_REGULAR_EXPRESSION = "regular-expression";
+
+export const FIELD_TYPE_SELECT = "select";
 
 export const FIELD_TYPE_TEXT = "text";
 

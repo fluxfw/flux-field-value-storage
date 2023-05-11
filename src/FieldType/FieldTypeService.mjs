@@ -1,4 +1,4 @@
-import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL, FIELD_TYPE_FLOAT, FIELD_TYPE_INTEGER, FIELD_TYPE_MULTILINE_TEXT, FIELD_TYPE_PASSWORD, FIELD_TYPE_REGULAR_EXPRESSION, FIELD_TYPE_TEXT, FIELD_TYPE_TIME, FIELD_TYPE_URL } from "./FIELD_TYPE.mjs";
+import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL, FIELD_TYPE_FLOAT, FIELD_TYPE_INTEGER, FIELD_TYPE_MULTILINE_TEXT, FIELD_TYPE_MULTIPLE_SELECT, FIELD_TYPE_PASSWORD, FIELD_TYPE_REGULAR_EXPRESSION, FIELD_TYPE_SELECT, FIELD_TYPE_TEXT, FIELD_TYPE_TIME, FIELD_TYPE_URL } from "./FIELD_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -112,12 +112,20 @@ export class FieldTypeService {
                     field_type = (await import("./MultilineTextFieldType.mjs")).MultilineTextFieldType.new();
                     break;
 
+                case FIELD_TYPE_MULTIPLE_SELECT:
+                    field_type = (await import("./MultipleSelectFieldType.mjs")).MultipleSelectFieldType.new();
+                    break;
+
                 case FIELD_TYPE_PASSWORD:
                     field_type = (await import("./PasswordFieldType.mjs")).PasswordFieldType.new();
                     break;
 
                 case FIELD_TYPE_REGULAR_EXPRESSION:
                     field_type = (await import("./RegularExpressionFieldType.mjs")).RegularExpressionFieldType.new();
+                    break;
+
+                case FIELD_TYPE_SELECT:
+                    field_type = (await import("./SelectFieldType.mjs")).SelectFieldType.new();
                     break;
 
                 case FIELD_TYPE_TEXT:
@@ -156,8 +164,10 @@ export class FieldTypeService {
             FIELD_TYPE_FLOAT,
             FIELD_TYPE_INTEGER,
             FIELD_TYPE_MULTILINE_TEXT,
+            FIELD_TYPE_MULTIPLE_SELECT,
             FIELD_TYPE_PASSWORD,
             FIELD_TYPE_REGULAR_EXPRESSION,
+            FIELD_TYPE_SELECT,
             FIELD_TYPE_TEXT,
             FIELD_TYPE_TIME,
             FIELD_TYPE_URL

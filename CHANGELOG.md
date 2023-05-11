@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-11-1-beta
+
+Changes:
+
+- Select and multiple select field type
+
 ## v2023-05-10-1-beta
 
 Changes:
