@@ -67,7 +67,7 @@ export class MultipleSelectFieldType {
         return [
             [
                 "Options",
-                field.options.map(option => option.label).join(", ")
+                field.options.map(option => `${option.label} (${option.value})`).join(", ")
             ]
         ];
     }
