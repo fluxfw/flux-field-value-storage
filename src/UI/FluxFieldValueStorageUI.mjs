@@ -3,6 +3,7 @@ import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
+import { ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST, ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST } from "./Libs/flux-table/src/ROW_ACTION_UPDATE_TYPE.mjs";
 
 /** @typedef {import("../Field/FieldTable.mjs").FieldTable} FieldTable */
 /** @typedef {import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs").FluxButtonGroupElement} FluxButtonGroupElement */
@@ -782,171 +783,115 @@ export class FluxFieldValueStorageUI {
     async #getFieldTable() {
         this.#field_element.innerHTML = "";
 
-        this.#flux_button_group_element.disabled = true;
+        if (this.#field_table === null) {
+            this.#flux_button_group_element.disabled = true;
 
-        const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-        this.#field_element.appendChild(flux_loading_spinner_element);
+            const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+            this.#field_element.appendChild(flux_loading_spinner_element);
 
-        try {
-            if (this.#field_table === null) {
+            try {
                 this.#field_table = await this.#request(
                     "field/get-table"
                 );
+            } catch (error) {
+                console.error(error);
+
+                const error_element = document.createElement("div");
+                error_element.innerText = "Couldn't load fields!";
+                this.#field_element.appendChild(error_element);
+
+                return;
+            } finally {
+                this.#flux_button_group_element.disabled = false;
+
+                flux_loading_spinner_element.remove();
             }
-        } catch (error) {
-            console.error(error);
-
-            const error_element = document.createElement("div");
-            error_element.innerText = "Couldn't load fields!";
-            this.#field_element.appendChild(error_element);
-
-            return;
-        } finally {
-            this.#flux_button_group_element.disabled = false;
-
-            flux_loading_spinner_element.remove();
         }
 
-        const add_button_element = document.createElement("button");
-        add_button_element.innerText = "Add";
-        add_button_element.type = "button";
-        add_button_element.addEventListener("click", () => {
-            this.#addField();
-        });
-        this.#field_element.appendChild(add_button_element);
+        const flux_table_element = (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
+            this.#field_table.columns,
+            this.#field_table.rows.map(row => ({
+                ...row,
+                actions: [
+                    {
+                        action: () => {
+                            this.#editField(
+                                row.name
+                            );
+                        },
+                        label: "Edit"
+                    },
+                    {
+                        action: async () => {
+                            if (!await this.#moveFieldUp(
+                                row.name
+                            )) {
+                                return;
+                            }
 
-        const refresh_button_element = document.createElement("button");
-        refresh_button_element.innerText = "Refresh";
-        refresh_button_element.type = "button";
-        refresh_button_element.addEventListener("click", () => {
-            this.#field_table = null;
-            this.#value_table_filter_form_element = null;
-            this.#value_table = null;
+                            flux_table_element.moveRowUp(
+                                row.name
+                            );
+                        },
+                        label: "/\\",
+                        title: "Move field up",
+                        "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST
+                    },
+                    {
+                        action: async () => {
+                            if (!await this.#moveFieldDown(
+                                row.name
+                            )) {
+                                return;
+                            }
 
-            this.#getFieldTable();
-        });
-        this.#field_element.appendChild(refresh_button_element);
+                            flux_table_element.moveRowDown(
+                                row.name
+                            );
+                        },
+                        label: "\\/",
+                        title: "Move field down",
+                        "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST
+                    },
+                    {
+                        action: async () => {
+                            if (!await this.#deleteField(
+                                row.name
+                            )) {
+                                return;
+                            }
 
-        const table_element = document.createElement("table");
+                            flux_table_element.deleteRow(
+                                row.name
+                            );
+                        },
+                        label: "Delete"
+                    }
+                ]
+            })),
+            "name",
+            [
+                {
+                    action: () => {
+                        this.#addField();
+                    },
+                    label: "Add"
+                },
+                {
+                    action: () => {
+                        this.#field_table = null;
+                        this.#value_table_filter_form_element = null;
+                        this.#value_table = null;
 
-        const thead_element = document.createElement("thead");
-        const thead_tr_element = document.createElement("tr");
-
-        for (const column of this.#field_table.columns) {
-            const th_element = document.createElement("th");
-            th_element.innerText = column.label;
-            thead_tr_element.appendChild(th_element);
-        }
-
-        const actions_th_element = document.createElement("th");
-        actions_th_element.innerText = "Actions";
-        thead_tr_element.appendChild(actions_th_element);
-
-        thead_element.appendChild(thead_tr_element);
-        table_element.appendChild(thead_element);
-
-        const tbody_element = document.createElement("tbody");
-
-        if (this.#field_table.rows.length > 0) {
-            const updateButtons = () => {
-                for (const tr_element of tbody_element.children) {
-                    tr_element.querySelector("[data-move_up_button]").disabled = tr_element.previousElementSibling === null;
-
-                    tr_element.querySelector("[data-move_down_button]").disabled = tr_element.nextElementSibling === null;
+                        this.#getFieldTable();
+                    },
+                    label: "Refresh"
                 }
-            };
-
-            for (const row of this.#field_table.rows) {
-                const tr_element = document.createElement("tr");
-
-                for (const column of this.#field_table.columns) {
-                    const td_element = document.createElement("td");
-                    td_element.innerText = row[column.key] ?? "-";
-                    tr_element.appendChild(td_element);
-                }
-
-                const actions_td_element = document.createElement("td");
-
-                const edit_button_element = document.createElement("button");
-                edit_button_element.innerText = "Edit";
-                edit_button_element.type = "button";
-                edit_button_element.addEventListener("click", () => {
-                    this.#editField(
-                        row.name
-                    );
-                });
-                actions_td_element.appendChild(edit_button_element);
-
-                const move_up_button_element = document.createElement("button");
-                move_up_button_element.dataset.move_up_button = true;
-                move_up_button_element.innerText = "/\\";
-                move_up_button_element.type = "button";
-                move_up_button_element.addEventListener("click", async () => {
-                    if (!await this.#moveUpField(
-                        row.name
-                    )) {
-                        return;
-                    }
-
-                    tr_element.previousElementSibling?.before(tr_element);
-
-                    updateButtons();
-                });
-                actions_td_element.appendChild(move_up_button_element);
-
-                const move_down_button_element = document.createElement("button");
-                move_down_button_element.dataset.move_down_button = true;
-                move_down_button_element.innerText = "\\/";
-                move_down_button_element.type = "button";
-                move_down_button_element.addEventListener("click", async () => {
-                    if (!await this.#moveDownField(
-                        row.name
-                    )) {
-                        return;
-                    }
-
-                    tr_element.nextElementSibling?.after(tr_element);
-
-                    updateButtons();
-                });
-                actions_td_element.appendChild(move_down_button_element);
-
-                const delete_button_element = document.createElement("button");
-                delete_button_element.innerText = "Delete";
-                delete_button_element.type = "button";
-                delete_button_element.addEventListener("click", async () => {
-                    if (!await this.#deleteField(
-                        row.name
-                    )) {
-                        return;
-                    }
-
-                    tr_element.remove();
-
-                    updateButtons();
-                });
-                actions_td_element.appendChild(delete_button_element);
-
-                tr_element.appendChild(actions_td_element);
-
-                tbody_element.appendChild(tr_element);
-            }
-
-            updateButtons();
-        } else {
-            const tr_element = document.createElement("tr");
-
-            const td_element = document.createElement("td");
-            td_element.colSpan = this.#field_table.columns.length + 1;
-            td_element.innerText = "No fields";
-            tr_element.appendChild(td_element);
-
-            tbody_element.appendChild(tr_element);
-        }
-
-        table_element.appendChild(tbody_element);
-
-        this.#field_element.appendChild(table_element);
+            ],
+            "Actions",
+            "No fields"
+        );
+        this.#field_element.appendChild(flux_table_element);
     }
 
     /**
@@ -991,49 +936,49 @@ export class FluxFieldValueStorageUI {
     async #getValueTable() {
         this.#value_element.innerHTML = "";
 
-        this.#flux_button_group_element.disabled = true;
-
-        const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-        this.#value_element.appendChild(flux_loading_spinner_element);
-
         let error_element = null;
-        try {
-            if (this.#value_table_filter_form_element === null) {
-                const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
-                    await this.#request(
-                        "value/get-table-filter-inputs"
-                    )
-                );
-                if (this.#value_table_filter !== null) {
-                    table_filter_form_element.values = this.#value_table_filter;
+        if (this.#value_table_filter_form_element === null || this.#value_table === null) {
+            this.#flux_button_group_element.disabled = true;
+
+            const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+            this.#value_element.appendChild(flux_loading_spinner_element);
+
+            try {
+                if (this.#value_table_filter_form_element === null) {
+                    const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+                        await this.#request(
+                            "value/get-table-filter-inputs"
+                        )
+                    );
+                    if (this.#value_table_filter !== null) {
+                        table_filter_form_element.values = this.#value_table_filter;
+                    }
+
+                    this.#value_table_filter_form_element = table_filter_form_element;
                 }
 
-                this.#value_table_filter_form_element = table_filter_form_element;
-            }
-
-            if (this.#value_table_filter !== null) {
-                if (this.#value_table === null) {
-                    this.#value_table = await this.#request(
+                if (this.#value_table_filter !== null) {
+                    this.#value_table ??= await this.#request(
                         "value/get-table",
                         Object.fromEntries(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(value => [
                             value.name,
                             value.value
                         ]))
                     );
+                } else {
+                    this.#value_table = null;
                 }
-            } else {
-                this.#value_table = null;
+            } catch (error) {
+                console.error(error);
+
+                error_element = document.createElement("div");
+                error_element.innerText = "Couldn't load values!";
+            } finally {
+                this.#flux_button_group_element.disabled = false;
+
+                flux_loading_spinner_element.remove();
             }
-        } catch (error) {
-            console.error(error);
-
-            error_element = document.createElement("div");
-            error_element.innerText = "Couldn't load values!";
         }
-
-        this.#flux_button_group_element.disabled = false;
-
-        flux_loading_spinner_element.remove();
 
         if (this.#value_table_filter_form_element === null) {
             if (error_element !== null) {
@@ -1044,117 +989,69 @@ export class FluxFieldValueStorageUI {
 
         this.#value_element.appendChild(this.#value_table_filter_form_element);
 
-        const search_button_element = document.createElement("button");
-        search_button_element.innerText = "Search";
-        search_button_element.type = "button";
-        search_button_element.addEventListener("click", () => {
-            if (!this.#value_table_filter_form_element.validate()) {
-                return;
-            }
-
-            this.#value_table_filter = this.#value_table_filter_form_element.values;
-            this.#value_table = null;
-
-            this.#getValueTable();
-        });
-        this.#value_element.appendChild(search_button_element);
-
-        if (this.#value_table === null) {
-            if (error_element !== null) {
-                this.#value_element.appendChild(error_element);
-            }
-            return;
+        if (error_element !== null) {
+            this.#value_element.appendChild(error_element);
         }
 
-        if (this.#value_table["show-add-new"]) {
-            const add_button_element = document.createElement("button");
-            add_button_element.innerText = "Add";
-            add_button_element.type = "button";
-            add_button_element.addEventListener("click", () => {
-                this.#addNewValue();
-            });
-            this.#value_element.appendChild(add_button_element);
-        }
+        this.#value_element.appendChild((await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
+            this.#value_table?.columns ?? [],
+            this.#value_table?.rows?.map(row => ({
+                ...row,
+                actions: row["has-value"] ? [
+                    {
+                        action: () => {
+                            this.#editValue(
+                                row.name
+                            );
+                        },
+                        label: "Edit"
+                    },
+                    {
+                        action: () => {
+                            this.#deleteValue(
+                                row.name
+                            );
+                        },
+                        label: "Delete"
+                    }
+                ] : [
+                    {
+                        action: () => {
+                            this.#addValue(
+                                row.name
+                            );
+                        },
+                        label: "Add"
+                    }
+                ]
+            })) ?? [],
+            null,
+            [
+                {
+                    action: () => {
+                        if (!this.#value_table_filter_form_element.validate()) {
+                            return;
+                        }
 
-        const table_element = document.createElement("table");
+                        this.#value_table_filter = this.#value_table_filter_form_element.values;
+                        this.#value_table = null;
 
-        const thead_element = document.createElement("thead");
-        const thead_tr_element = document.createElement("tr");
-        for (const column of this.#value_table.columns) {
-            const th_element = document.createElement("th");
-            th_element.innerText = column.label;
-            thead_tr_element.appendChild(th_element);
-        }
-        const actions_th_element = document.createElement("th");
-        actions_th_element.innerText = "Actions";
-        thead_tr_element.appendChild(actions_th_element);
-        thead_element.appendChild(thead_tr_element);
-        table_element.appendChild(thead_element);
-
-        const tbody_element = document.createElement("tbody");
-
-        if (this.#value_table.rows.length > 0) {
-            for (const row of this.#value_table.rows) {
-                const tr_element = document.createElement("tr");
-
-                for (const column of this.#value_table.columns) {
-                    const td_element = document.createElement("td");
-                    td_element.innerText = row[column.key] ?? "-";
-                    tr_element.appendChild(td_element);
-                }
-
-                const actions_td_element = document.createElement("td");
-
-                if (row["has-value"]) {
-                    const add_button_element = document.createElement("button");
-                    add_button_element.innerText = "Edit";
-                    add_button_element.type = "button";
-                    add_button_element.addEventListener("click", () => {
-                        this.#editValue(
-                            row.name
-                        );
-                    });
-                    actions_td_element.appendChild(add_button_element);
-
-                    const delete_button_element = document.createElement("button");
-                    delete_button_element.innerText = "Delete";
-                    delete_button_element.type = "button";
-                    delete_button_element.addEventListener("click", () => {
-                        this.#deleteValue(
-                            row.name
-                        );
-                    });
-                    actions_td_element.appendChild(delete_button_element);
-                } else {
-                    const edit_button_element = document.createElement("button");
-                    edit_button_element.innerText = "Add";
-                    edit_button_element.type = "button";
-                    edit_button_element.addEventListener("click", () => {
-                        this.#addValue(
-                            row.name
-                        );
-                    });
-                    actions_td_element.appendChild(edit_button_element);
-                }
-
-                tr_element.appendChild(actions_td_element);
-
-                tbody_element.appendChild(tr_element);
-            }
-        } else {
-            const tr_element = document.createElement("tr");
-
-            const td_element = document.createElement("td");
-            td_element.colSpan = this.#value_table.columns.length + 1;
-            td_element.innerText = "No values";
-            tr_element.appendChild(td_element);
-
-            tbody_element.appendChild(tr_element);
-        }
-
-        table_element.appendChild(tbody_element);
-
-        this.#value_element.appendChild(table_element);
+                        this.#getValueTable();
+                    },
+                    label: "Search"
+                },
+                ...this.#value_table?.["show-add-new"] ?? false ? [
+                    {
+                        action: () => {
+                            this.#addNewValue();
+                        },
+                        label: "Add"
+                    }
+                ] : []
+            ],
+            "Actions",
+            "No values"
+        ));
     }
 
     /**
@@ -1172,7 +1069,7 @@ export class FluxFieldValueStorageUI {
      * @param {string} name
      * @returns {Promise<boolean>}
      */
-    async #moveDownField(name) {
+    async #moveFieldDown(name) {
         const {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
@@ -1213,7 +1110,7 @@ export class FluxFieldValueStorageUI {
      * @param {string} name
      * @returns {Promise<boolean>}
      */
-    async #moveUpField(name) {
+    async #moveFieldUp(name) {
         const {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
