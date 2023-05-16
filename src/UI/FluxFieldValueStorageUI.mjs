@@ -833,7 +833,7 @@ export class FluxFieldValueStorageUI {
                             this.#value_table = null;
                         },
                         label: "/\\",
-                        title: "Move field up",
+                        title: "Move up",
                         "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST
                     },
                     {
@@ -851,7 +851,7 @@ export class FluxFieldValueStorageUI {
                             this.#value_table = null;
                         },
                         label: "\\/",
-                        title: "Move field down",
+                        title: "Move down",
                         "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST
                     },
                     {
