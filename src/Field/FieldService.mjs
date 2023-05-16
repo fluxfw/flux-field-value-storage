@@ -220,7 +220,7 @@ export class FieldService {
         const rows = [];
 
         for (const field of await this.getFields()) {
-            const other = await this.#field_type_service.getFieldTableOtherColumn(
+            const additional = await this.#field_type_service.getFieldTableAdditionalColumn(
                 field
             );
 
@@ -230,7 +230,7 @@ export class FieldService {
                 ),
                 name: field.name,
                 label: field.label,
-                other: other !== null ? other.map(([
+                additional: additional !== null ? additional.map(([
                     key,
                     value
                 ]) => `${key}: ${value}`).join("\n") : "-"
@@ -252,8 +252,8 @@ export class FieldService {
                     label: "Label"
                 },
                 {
-                    key: "other",
-                    label: "Other "
+                    key: "additional",
+                    label: "Additional "
                 }
             ],
             rows

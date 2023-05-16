@@ -37,7 +37,7 @@ export class ColorFieldType {
      * @param {Field} field
      * @returns {Promise<null>}
      */
-    async getFieldTableOtherColumn(field) {
+    async getFieldTableAdditionalColumn(field) {
         return null;
     }
 

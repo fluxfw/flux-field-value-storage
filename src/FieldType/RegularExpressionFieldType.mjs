@@ -51,7 +51,7 @@ export class RegularExpressionFieldType {
      * @param {Field} field
      * @returns {Promise<[string, string][]>}
      */
-    async getFieldTableOtherColumn(field) {
+    async getFieldTableAdditionalColumn(field) {
         return [
             [
                 "Placeholder",

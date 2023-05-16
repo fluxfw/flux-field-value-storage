@@ -50,8 +50,8 @@ export class FieldTypeService {
      * @param {Field} field
      * @returns {Promise<[string, string][] | null>}
      */
-    async getFieldTableOtherColumn(field) {
-        const other = [
+    async getFieldTableAdditionalColumn(field) {
+        const additional = [
             [
                 "Subtitle",
                 field.subtitle
@@ -62,7 +62,7 @@ export class FieldTypeService {
             ],
             ...await (await this.getFieldType(
                 field.type
-            ))?.getFieldTableOtherColumn(
+            ))?.getFieldTableAdditionalColumn(
                 field
             ) ?? []
         ].filter(([
@@ -70,7 +70,7 @@ export class FieldTypeService {
             value
         ]) => (value ?? "") !== "");
 
-        return other.length > 0 ? other : null;
+        return additional.length > 0 ? additional : null;
     }
 
     /**

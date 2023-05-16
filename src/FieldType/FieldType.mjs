@@ -17,7 +17,7 @@ export class FieldType {
      * @returns {Promise<[string, string][] | null>}
      * @abstract
      */
-    getFieldTableOtherColumn(field) { }
+    getFieldTableAdditionalColumn(field) { }
 
     /**
      * @returns {Promise<string>}

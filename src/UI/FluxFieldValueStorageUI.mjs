@@ -139,7 +139,7 @@ export class FluxFieldValueStorageUI {
     }
 
     /**
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #addField() {
         const {
@@ -168,7 +168,7 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         await flux_overlay_element.showLoading(
@@ -187,6 +187,7 @@ export class FluxFieldValueStorageUI {
                 value: "next"
             }
         ];
+
         const addField = async () => {
             const type_result = await flux_overlay_element.wait(
                 null,
@@ -195,7 +196,7 @@ export class FluxFieldValueStorageUI {
             );
             if (type_result.button !== "next") {
                 flux_overlay_element.remove();
-                return;
+                return false;
             }
 
             flux_overlay_element.message = "";
@@ -221,9 +222,8 @@ export class FluxFieldValueStorageUI {
                     false
                 );
                 flux_overlay_element.buttons = false;
-                addField();
 
-                return;
+                return addField();
             }
 
             await flux_overlay_element.showLoading(
@@ -242,6 +242,7 @@ export class FluxFieldValueStorageUI {
                     value: "add"
                 }
             ];
+
             const addField2 = async () => {
                 const result = await flux_overlay_element.wait(
                     null,
@@ -250,7 +251,7 @@ export class FluxFieldValueStorageUI {
                 );
                 if (result.button !== "add") {
                     flux_overlay_element.remove();
-                    return;
+                    return false;
                 }
 
                 flux_overlay_element.message = "";
@@ -285,26 +286,23 @@ export class FluxFieldValueStorageUI {
                         false
                     );
                     flux_overlay_element.buttons = false;
-                    addField2();
 
-                    return;
+                    return addField2();
                 }
 
                 flux_overlay_element.remove();
 
-                this.#field_table = null;
-                this.#value_table_filter_form_element = null;
-                this.#value_table = null;
-
-                this.#getFieldTable();
+                return true;
             };
-            addField2();
+
+            return addField2();
         };
-        addField();
+
+        return addField();
     }
 
     /**
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #addNewValue() {
         const {
@@ -333,7 +331,7 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         await flux_overlay_element.showLoading(
@@ -355,17 +353,19 @@ export class FluxFieldValueStorageUI {
 
         const result = await flux_overlay_element.wait();
         if (result.button !== "next") {
-            return;
+            return false;
         }
 
-        this.#addValue(
+        await this.#addValue(
             result.inputs.find(value => value.name === "name").value
         );
+
+        return true;
     }
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #addValue(name) {
         const {
@@ -394,7 +394,7 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         await flux_overlay_element.showLoading(
@@ -413,6 +413,7 @@ export class FluxFieldValueStorageUI {
                 value: "add"
             }
         ];
+
         const addValue = async () => {
             const result = await flux_overlay_element.wait(
                 null,
@@ -421,7 +422,7 @@ export class FluxFieldValueStorageUI {
             );
             if (result.button !== "add") {
                 flux_overlay_element.remove();
-                return;
+                return false;
             }
 
             flux_overlay_element.message = "";
@@ -452,18 +453,16 @@ export class FluxFieldValueStorageUI {
                     false
                 );
                 flux_overlay_element.buttons = false;
-                addValue();
 
-                return;
+                return addValue();
             }
 
             flux_overlay_element.remove();
 
-            this.#value_table = null;
-
-            this.#getValueTable();
+            return true;
         };
-        addValue();
+
+        return addValue();
     }
 
     /**
@@ -510,15 +509,12 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#value_table_filter_form_element = null;
-        this.#value_table = null;
-
         return true;
     }
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #deleteValue(name) {
         const {
@@ -531,7 +527,7 @@ export class FluxFieldValueStorageUI {
             "No",
             "Yes"
         )) {
-            return;
+            return false;
         }
 
         const flux_overlay_element = await FluxOverlayElement.loading();
@@ -555,19 +551,17 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         flux_overlay_element.remove();
 
-        this.#value_table = null;
-
-        this.#getValueTable();
+        return true;
     }
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #editField(name) {
         const {
@@ -596,7 +590,7 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         await flux_overlay_element.showLoading(
@@ -615,6 +609,7 @@ export class FluxFieldValueStorageUI {
                 value: "save"
             }
         ];
+
         const editField = async () => {
             const result = await flux_overlay_element.wait(
                 null,
@@ -623,7 +618,7 @@ export class FluxFieldValueStorageUI {
             );
             if (result.button !== "save") {
                 flux_overlay_element.remove();
-                return;
+                return false;
             }
 
             flux_overlay_element.message = "";
@@ -658,25 +653,21 @@ export class FluxFieldValueStorageUI {
                     false
                 );
                 flux_overlay_element.buttons = false;
-                editField();
 
-                return;
+                return editField();
             }
 
             flux_overlay_element.remove();
 
-            this.#field_table = null;
-            this.#value_table_filter_form_element = null;
-            this.#value_table = null;
-
-            this.#getFieldTable();
+            return true;
         };
-        editField();
+
+        return editField();
     }
 
     /**
      * @param {string} name
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async #editValue(name) {
         const {
@@ -705,7 +696,7 @@ export class FluxFieldValueStorageUI {
                 "OK"
             );
 
-            return;
+            return false;
         }
 
         await flux_overlay_element.showLoading(
@@ -724,6 +715,7 @@ export class FluxFieldValueStorageUI {
                 value: "save"
             }
         ];
+
         const editValue = async () => {
             const result = await flux_overlay_element.wait(
                 null,
@@ -732,7 +724,7 @@ export class FluxFieldValueStorageUI {
             );
             if (result.button !== "save") {
                 flux_overlay_element.remove();
-                return;
+                return false;
             }
 
             flux_overlay_element.message = "";
@@ -763,18 +755,16 @@ export class FluxFieldValueStorageUI {
                     false
                 );
                 flux_overlay_element.buttons = false;
-                editValue();
 
-                return;
+                return editValue();
             }
 
             flux_overlay_element.remove();
 
-            this.#value_table = null;
-
-            this.#getValueTable();
+            return true;
         };
-        editValue();
+
+        return editValue();
     }
 
     /**
@@ -814,10 +804,17 @@ export class FluxFieldValueStorageUI {
                 ...row,
                 actions: [
                     {
-                        action: () => {
-                            this.#editField(
+                        action: async () => {
+                            if (! await this.#editField(
                                 row.name
-                            );
+                            )) {
+                                return;
+                            }
+
+                            this.#field_table = null;
+                            this.#value_table_filter_form_element = null;
+                            this.#value_table = null;
+                            this.#getFieldTable();
                         },
                         label: "Edit"
                     },
@@ -832,6 +829,8 @@ export class FluxFieldValueStorageUI {
                             flux_table_element.moveRowUp(
                                 row.name
                             );
+                            this.#value_table_filter_form_element = null;
+                            this.#value_table = null;
                         },
                         label: "/\\",
                         title: "Move field up",
@@ -848,6 +847,8 @@ export class FluxFieldValueStorageUI {
                             flux_table_element.moveRowDown(
                                 row.name
                             );
+                            this.#value_table_filter_form_element = null;
+                            this.#value_table = null;
                         },
                         label: "\\/",
                         title: "Move field down",
@@ -864,6 +865,8 @@ export class FluxFieldValueStorageUI {
                             flux_table_element.deleteRow(
                                 row.name
                             );
+                            this.#value_table_filter_form_element = null;
+                            this.#value_table = null;
                         },
                         label: "Delete"
                     }
@@ -872,8 +875,15 @@ export class FluxFieldValueStorageUI {
             "name",
             [
                 {
-                    action: () => {
-                        this.#addField();
+                    action: async () => {
+                        if (!await this.#addField()) {
+                            return;
+                        }
+
+                        this.#field_table = null;
+                        this.#value_table_filter_form_element = null;
+                        this.#value_table = null;
+                        this.#getFieldTable();
                     },
                     label: "Add"
                 },
@@ -882,7 +892,6 @@ export class FluxFieldValueStorageUI {
                         this.#field_table = null;
                         this.#value_table_filter_form_element = null;
                         this.#value_table = null;
-
                         this.#getFieldTable();
                     },
                     label: "Refresh"
@@ -999,27 +1008,42 @@ export class FluxFieldValueStorageUI {
                 ...row,
                 actions: row["has-value"] ? [
                     {
-                        action: () => {
-                            this.#editValue(
+                        action: async () => {
+                            if (!await this.#editValue(
                                 row.name
-                            );
+                            )) {
+                                return;
+                            }
+
+                            this.#value_table = null;
+                            this.#getValueTable();
                         },
                         label: "Edit"
                     },
                     {
-                        action: () => {
-                            this.#deleteValue(
+                        action: async () => {
+                            if (!await this.#deleteValue(
                                 row.name
-                            );
+                            )) {
+                                return;
+                            }
+
+                            this.#value_table = null;
+                            this.#getValueTable();
                         },
                         label: "Delete"
                     }
                 ] : [
                     {
-                        action: () => {
-                            this.#addValue(
+                        action: async () => {
+                            if (!await this.#addValue(
                                 row.name
-                            );
+                            )) {
+                                return;
+                            }
+
+                            this.#value_table = null;
+                            this.#getValueTable();
                         },
                         label: "Add"
                     }
@@ -1035,15 +1059,19 @@ export class FluxFieldValueStorageUI {
 
                         this.#value_table_filter = this.#value_table_filter_form_element.values;
                         this.#value_table = null;
-
                         this.#getValueTable();
                     },
                     label: "Search"
                 },
                 ...this.#value_table?.["show-add-new"] ?? false ? [
                     {
-                        action: () => {
-                            this.#addNewValue();
+                        action: async () => {
+                            if (!await this.#addNewValue()) {
+                                return;
+                            }
+
+                            this.#value_table = null;
+                            this.#getValueTable();
                         },
                         label: "Add"
                     }
@@ -1100,9 +1128,6 @@ export class FluxFieldValueStorageUI {
 
         flux_overlay_element.remove();
 
-        this.#value_table_filter_form_element = null;
-        this.#value_table = null;
-
         return true;
     }
 
@@ -1140,9 +1165,6 @@ export class FluxFieldValueStorageUI {
         }
 
         flux_overlay_element.remove();
-
-        this.#value_table_filter_form_element = null;
-        this.#value_table = null;
 
         return true;
     }

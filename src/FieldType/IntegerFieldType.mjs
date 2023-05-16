@@ -52,7 +52,7 @@ export class IntegerFieldType {
      * @param {Field} field
      * @returns {Promise<[string, string][]>}
      */
-    async getFieldTableOtherColumn(field) {
+    async getFieldTableAdditionalColumn(field) {
         return [
             [
                 "Minimal value",

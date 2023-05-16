@@ -35,7 +35,7 @@ export class BooleanFieldType {
      * @param {Field} field
      * @returns {Promise<null>}
      */
-    async getFieldTableOtherColumn(field) {
+    async getFieldTableAdditionalColumn(field) {
         return null;
     }
 
