@@ -47,6 +47,6 @@ installLibrary flux-pwa-generator https://github.com/fluxfw/flux-pwa-generator/a
 
 installLibrary flux-shutdown-handler https://github.com/fluxfw/flux-shutdown-handler/archive/refs/tags/v2023-03-16-1.tar.gz
 
-installLibrary flux-table https://github.com/fluxfw/flux-table/archive/refs/tags/v2023-05-17-1.tar.gz
+installLibrary flux-table https://github.com/fluxfw/flux-table/archive/refs/tags/v2023-05-17-2.tar.gz
 
 installLibrary mime-db https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz

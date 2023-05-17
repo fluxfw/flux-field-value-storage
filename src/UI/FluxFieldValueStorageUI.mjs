@@ -826,9 +826,16 @@ export class FluxFieldValueStorageUI {
                                 return;
                             }
 
+                            const index = this.#field_table.rows.indexOf(row);
+                            if (index > 0) {
+                                this.#field_table.rows.splice(index, 1);
+                                this.#field_table.rows.splice(index - 1, 0, row);
+                            }
+
                             flux_table_element.moveRowUp(
                                 row.name
                             );
+
                             this.#value_table_filter_form_element = null;
                             this.#value_table = null;
                         },
@@ -844,9 +851,16 @@ export class FluxFieldValueStorageUI {
                                 return;
                             }
 
+                            const index = this.#field_table.rows.indexOf(row);
+                            if (index < this.#field_table.rows.length - 1) {
+                                this.#field_table.rows.splice(index, 1);
+                                this.#field_table.rows.splice(index + 1, 0, row);
+                            }
+
                             flux_table_element.moveRowDown(
                                 row.name
                             );
+
                             this.#value_table_filter_form_element = null;
                             this.#value_table = null;
                         },
@@ -862,9 +876,12 @@ export class FluxFieldValueStorageUI {
                                 return;
                             }
 
+                            this.#field_table.rows.splice(this.#field_table.rows.indexOf(row), 1);
+
                             flux_table_element.deleteRow(
                                 row.name
                             );
+
                             this.#value_table_filter_form_element = null;
                             this.#value_table = null;
                         },
