@@ -1,3 +1,4 @@
+import { EMPTY_COLUMN } from "../../../flux-table/src/EMPTY_COLUMN.mjs";
 import { FIELD_NAME_PATTERN } from "./FIELD_NAME.mjs";
 import { FIELD_POSITION_MOVE, FIELD_POSITION_START, FIELD_POSITION_VALUE } from "./FIELD_POSITION.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
@@ -233,7 +234,7 @@ export class FieldService {
                 additional: additional !== null ? additional.map(([
                     key,
                     value
-                ]) => `${key}: ${value}`).join("\n") : "-"
+                ]) => `${key}: ${value}`).join("\n") : EMPTY_COLUMN
             });
         }
 

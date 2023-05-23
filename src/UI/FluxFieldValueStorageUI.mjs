@@ -1,4 +1,5 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
+import { COLUMN_KEY_ACTIONS } from "./Libs/flux-table/src/COLUMN_KEY.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
@@ -83,6 +84,8 @@ export class FluxFieldValueStorageUI {
     async showUI() {
         await this.#init();
 
+        const container_element = document.createElement("div");
+
         const {
             FLUX_BUTTON_GROUP_EVENT_INPUT
         } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_GROUP_EVENT.mjs");
@@ -126,14 +129,16 @@ export class FluxFieldValueStorageUI {
                     break;
             }
         });
-        document.body.appendChild(this.#flux_button_group_element);
+        container_element.appendChild(this.#flux_button_group_element);
 
         this.#field_element = document.createElement("div");
         this.#field_element.style.display = "none";
-        document.body.appendChild(this.#field_element);
+        container_element.appendChild(this.#field_element);
 
         this.#value_element = document.createElement("div");
-        document.body.appendChild(this.#value_element);
+        container_element.appendChild(this.#value_element);
+
+        document.body.appendChild(container_element);
 
         this.#getValueTable();
     }
@@ -799,10 +804,41 @@ export class FluxFieldValueStorageUI {
         }
 
         const flux_table_element = (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
-            this.#field_table.columns,
+            [
+                {
+                    action: async () => {
+                        if (!await this.#addField()) {
+                            return;
+                        }
+
+                        this.#field_table = null;
+                        this.#value_table_filter_form_element = null;
+                        this.#value_table = null;
+                        this.#getFieldTable();
+                    },
+                    label: "Add"
+                },
+                {
+                    action: () => {
+                        this.#field_table = null;
+                        this.#value_table_filter_form_element = null;
+                        this.#value_table = null;
+                        this.#getFieldTable();
+                    },
+                    label: "Refresh"
+                }
+            ],
+            [
+                ...this.#field_table.columns,
+                {
+                    key: COLUMN_KEY_ACTIONS,
+                    label: "Actions"
+                }
+            ],
+            "name",
             this.#field_table.rows.map(row => ({
                 ...row,
-                actions: [
+                [COLUMN_KEY_ACTIONS]: [
                     {
                         action: async () => {
                             if (! await this.#editField(
@@ -889,32 +925,6 @@ export class FluxFieldValueStorageUI {
                     }
                 ]
             })),
-            "name",
-            [
-                {
-                    action: async () => {
-                        if (!await this.#addField()) {
-                            return;
-                        }
-
-                        this.#field_table = null;
-                        this.#value_table_filter_form_element = null;
-                        this.#value_table = null;
-                        this.#getFieldTable();
-                    },
-                    label: "Add"
-                },
-                {
-                    action: () => {
-                        this.#field_table = null;
-                        this.#value_table_filter_form_element = null;
-                        this.#value_table = null;
-                        this.#getFieldTable();
-                    },
-                    label: "Refresh"
-                }
-            ],
-            "Actions",
             "No fields"
         );
         this.#field_element.appendChild(flux_table_element);
@@ -1020,10 +1030,43 @@ export class FluxFieldValueStorageUI {
         }
 
         this.#value_element.appendChild((await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
-            this.#value_table?.columns ?? [],
+            [
+                {
+                    action: () => {
+                        if (!this.#value_table_filter_form_element.validate()) {
+                            return;
+                        }
+
+                        this.#value_table_filter = this.#value_table_filter_form_element.values;
+                        this.#value_table = null;
+                        this.#getValueTable();
+                    },
+                    label: "View"
+                },
+                ...this.#value_table?.["show-add-new"] ?? false ? [
+                    {
+                        action: async () => {
+                            if (!await this.#addNewValue()) {
+                                return;
+                            }
+
+                            this.#value_table = null;
+                            this.#getValueTable();
+                        },
+                        label: "Add"
+                    }
+                ] : []
+            ],
+            this.#value_table?.columns?.concat([
+                {
+                    key: COLUMN_KEY_ACTIONS,
+                    label: "Actions"
+                }
+            ]) ?? null,
+            "name",
             this.#value_table?.rows?.map(row => ({
                 ...row,
-                actions: row["has-value"] ? [
+                [COLUMN_KEY_ACTIONS]: row["has-value"] ? [
                     {
                         action: async () => {
                             if (!await this.#editValue(
@@ -1065,36 +1108,7 @@ export class FluxFieldValueStorageUI {
                         label: "Add"
                     }
                 ]
-            })) ?? [],
-            null,
-            [
-                {
-                    action: () => {
-                        if (!this.#value_table_filter_form_element.validate()) {
-                            return;
-                        }
-
-                        this.#value_table_filter = this.#value_table_filter_form_element.values;
-                        this.#value_table = null;
-                        this.#getValueTable();
-                    },
-                    label: "Search"
-                },
-                ...this.#value_table?.["show-add-new"] ?? false ? [
-                    {
-                        action: async () => {
-                            if (!await this.#addNewValue()) {
-                                return;
-                            }
-
-                            this.#value_table = null;
-                            this.#getValueTable();
-                        },
-                        label: "Add"
-                    }
-                ] : []
-            ],
-            "Actions",
+            })) ?? null,
             "No values"
         ));
     }
