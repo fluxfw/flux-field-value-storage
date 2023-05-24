@@ -31,7 +31,7 @@ installLibrary flux-config-api https://github.com/fluxfw/flux-config-api/archive
 
 installLibrary flux-css-api https://github.com/fluxfw/flux-css-api/archive/refs/tags/v2023-04-11-1.tar.gz
 
-installLibrary flux-form https://github.com/fluxfw/flux-form/archive/refs/tags/v2023-05-23-1.tar.gz
+installLibrary flux-form https://github.com/fluxfw/flux-form/archive/refs/tags/v2023-05-24-1.tar.gz
 
 installLibrary flux-http-api https://github.com/fluxfw/flux-http-api/archive/refs/tags/v2023-04-20-1.tar.gz
 
