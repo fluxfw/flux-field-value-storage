@@ -1,4 +1,5 @@
 import { FIELD_TYPE_EMAIL } from "./FIELD_TYPE.mjs";
+import { FORMAT_TYPE_EMAIL } from "../../../flux-format/src/FORMAT_TYPE.mjs";
 import { INPUT_TYPE_EMAIL, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -54,6 +55,14 @@ export class EmailFieldType {
     }
 
     /**
+     * @param {Field} field
+     * @returns {Promise<string>}
+     */
+    async getFormatType(field) {
+        return FORMAT_TYPE_EMAIL;
+    }
+
+    /**
      * @returns {Promise<string>}
      */
     async getType() {
@@ -70,10 +79,19 @@ export class EmailFieldType {
     /**
      * @param {Field} field
      * @param {string | null} value
-     * @returns {Promise<string>}
+     * @returns {Promise<string | null>}
+     */
+    async getValueAsFormat(field, value = null) {
+        return value;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<string | null>}
      */
     async getValueAsText(field, value = null) {
-        return (value ?? "") !== "" ? value : "-";
+        return value;
     }
 
     /**

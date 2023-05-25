@@ -1,4 +1,5 @@
 import { FIELD_TYPE_MULTIPLE_SELECT } from "./FIELD_TYPE.mjs";
+import { FORMAT_TYPE_TEXT } from "../../../flux-format/src/FORMAT_TYPE.mjs";
 import { INPUT_TYPE_ENTRIES, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -73,6 +74,14 @@ export class MultipleSelectFieldType {
     }
 
     /**
+     * @param {Field} field
+     * @returns {Promise<string>}
+     */
+    async getFormatType(field) {
+        return FORMAT_TYPE_TEXT;
+    }
+
+    /**
      * @returns {Promise<string>}
      */
     async getType() {
@@ -89,10 +98,22 @@ export class MultipleSelectFieldType {
     /**
      * @param {Field} field
      * @param {string[] | null} value
-     * @returns {Promise<string>}
+     * @returns {Promise<string | null>}
+     */
+    async getValueAsFormat(field, value = null) {
+        return this.getValueAsText(
+            field,
+            value
+        );
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string[] | null} value
+     * @returns {Promise<string | null>}
      */
     async getValueAsText(field, value = null) {
-        return (value ?? []).length > 0 ? value.map(_value => field.options.find(option => option.value === _value)?.label ?? _value).join("\n") : "-";
+        return (value ?? []).length > 0 ? value.map(_value => field.options.find(option => option.value === _value)?.label ?? _value).join("\n") : null;
     }
 
     /**

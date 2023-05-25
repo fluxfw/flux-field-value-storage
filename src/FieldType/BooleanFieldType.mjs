@@ -1,4 +1,5 @@
 import { FIELD_TYPE_BOOLEAN } from "./FIELD_TYPE.mjs";
+import { FORMAT_TYPE_TEXT } from "../../../flux-format/src/FORMAT_TYPE.mjs";
 import { INPUT_TYPE_CHECKBOX } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -40,6 +41,14 @@ export class BooleanFieldType {
     }
 
     /**
+     * @param {Field} field
+     * @returns {Promise<string>}
+     */
+    async getFormatType(field) {
+        return FORMAT_TYPE_TEXT;
+    }
+
+    /**
      * @returns {Promise<string>}
      */
     async getType() {
@@ -51,6 +60,18 @@ export class BooleanFieldType {
      */
     async getTypeLabel() {
         return "Boolean";
+    }
+
+    /**
+     * @param {Field} field
+     * @param {boolean | null} value
+     * @returns {Promise<string>}
+     */
+    async getValueAsFormat(field, value = null) {
+        return this.getValueAsText(
+            field,
+            value
+        );
     }
 
     /**

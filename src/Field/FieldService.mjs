@@ -1,4 +1,3 @@
-import { EMPTY_COLUMN } from "../../../flux-table/src/EMPTY_COLUMN.mjs";
 import { FIELD_NAME_PATTERN } from "./FIELD_NAME.mjs";
 import { FIELD_POSITION_MOVE, FIELD_POSITION_START, FIELD_POSITION_VALUE } from "./FIELD_POSITION.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
@@ -9,6 +8,7 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_T
 /** @typedef {import("../FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("../Value/Value.mjs").Value} Value */
+/** @typedef {import("../Value/ValueAsFormat.mjs").ValueAsFormat} ValueAsFormat */
 /** @typedef {import("../Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
@@ -231,10 +231,12 @@ export class FieldService {
                 ),
                 name: field.name,
                 label: field.label,
-                additional: additional !== null ? additional.map(([
-                    key,
-                    value
-                ]) => `${key}: ${value}`).join("\n") : EMPTY_COLUMN
+                ...additional !== null ? {
+                    additional: additional.map(([
+                        key,
+                        value
+                    ]) => `${key}: ${value}`).join("\n")
+                } : null
             });
         }
 
@@ -288,6 +290,30 @@ export class FieldService {
 
     /**
      * @param {Value} value
+     * @returns {Promise<ValueAsFormat[]>}
+     */
+    async getValueAsFormat(value) {
+        const values = [];
+
+        for (const field of await this.getFields()) {
+            values.push({
+                name: field.name,
+                label: field.label,
+                type: await this.#field_type_service.getFormatType(
+                    field
+                ),
+                value: await this.#field_type_service.getValueAsFormat(
+                    field,
+                    value.values.find(field_value => field_value.name === field.name)?.value ?? null
+                )
+            });
+        }
+
+        return values;
+    }
+
+    /**
+     * @param {Value} value
      * @returns {Promise<ValueAsText[]>}
      */
     async getValueAsText(value) {
@@ -337,6 +363,23 @@ export class FieldService {
     async getValueTable(values) {
         const fields = await this.getFields();
 
+        const columns = [
+            {
+                key: "name",
+                label: "Name"
+            }
+        ];
+
+        for (const field of fields) {
+            columns.push({
+                key: `field-${field.name}`,
+                label: field.label,
+                "format-type": await this.#field_type_service.getFormatType(
+                    field
+                )
+            });
+        }
+
         const rows = [];
 
         for (const value of values) {
@@ -346,7 +389,7 @@ export class FieldService {
             };
 
             for (const field of fields) {
-                row[`field-${field.name}`] = await this.#field_type_service.getValueAsText(
+                row[`field-${field.name}`] = await this.#field_type_service.getValueAsFormat(
                     field,
                     value.values.find(field_value => field_value.name === field.name)?.value ?? null
                 );
@@ -357,16 +400,7 @@ export class FieldService {
 
         return {
             "show-add-new": true,
-            columns: [
-                {
-                    key: "name",
-                    label: "Name"
-                },
-                ...fields.map(field => ({
-                    key: `field-${field.name}`,
-                    label: field.label
-                }))
-            ],
+            columns,
             rows
         };
     }

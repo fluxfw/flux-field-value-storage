@@ -1,6 +1,6 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
-import { COLUMN_KEY_ACTIONS } from "./Libs/flux-table/src/COLUMN_KEY.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
+import { FORMAT_TYPE_FLUX_TABLE_ACTIONS } from "./Libs/flux-table/src/FORMAT_TYPE.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
@@ -10,6 +10,7 @@ import { ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST, ROW_ACTION_UPDATE_TYPE_DISABLE
 /** @typedef {import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs").FluxButtonGroupElement} FluxButtonGroupElement */
 /** @typedef {import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs").FluxColorScheme} FluxColorScheme */
 /** @typedef {import("./Libs/flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
+/** @typedef {import("./Libs/flux-format/src/FluxFormat.mjs").FluxFormat} FluxFormat */
 /** @typedef {import("./Libs/flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs").FluxPwaApi} FluxPwaApi */
 /** @typedef {import("./Libs/flux-form/src/InputValue.mjs").InputValue} InputValue */
@@ -31,6 +32,10 @@ export class FluxFieldValueStorageUI {
      * @type {FluxColorScheme | null}
      */
     #flux_color_scheme = null;
+    /**
+     * @type {FluxFormat | null}
+     */
+    #flux_format = null;
     /**
      * @type {FluxHttpApi | null}
      */
@@ -803,7 +808,8 @@ export class FluxFieldValueStorageUI {
             }
         }
 
-        const flux_table_element = (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
+        const flux_table_element = await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
+            await this.#getFluxFormat(),
             [
                 {
                     action: async () => {
@@ -831,14 +837,15 @@ export class FluxFieldValueStorageUI {
             [
                 ...this.#field_table.columns,
                 {
-                    key: COLUMN_KEY_ACTIONS,
-                    label: "Actions"
+                    key: "actions",
+                    label: "Actions",
+                    "format-type": FORMAT_TYPE_FLUX_TABLE_ACTIONS
                 }
             ],
             "name",
             this.#field_table.rows.map(row => ({
                 ...row,
-                [COLUMN_KEY_ACTIONS]: [
+                actions: [
                     {
                         action: async () => {
                             if (! await this.#editField(
@@ -868,7 +875,7 @@ export class FluxFieldValueStorageUI {
                                 this.#field_table.rows.splice(index - 1, 0, row);
                             }
 
-                            flux_table_element.moveRowUp(
+                            await flux_table_element.moveRowUp(
                                 row.name
                             );
 
@@ -893,7 +900,7 @@ export class FluxFieldValueStorageUI {
                                 this.#field_table.rows.splice(index + 1, 0, row);
                             }
 
-                            flux_table_element.moveRowDown(
+                            await flux_table_element.moveRowDown(
                                 row.name
                             );
 
@@ -914,7 +921,7 @@ export class FluxFieldValueStorageUI {
 
                             this.#field_table.rows.splice(this.#field_table.rows.indexOf(row), 1);
 
-                            flux_table_element.deleteRow(
+                            await flux_table_element.deleteRow(
                                 row.name
                             );
 
@@ -944,6 +951,15 @@ export class FluxFieldValueStorageUI {
         );
 
         return this.#flux_color_scheme;
+    }
+
+    /**
+     * @returns {Promise<FluxFormat>}
+     */
+    async #getFluxFormat() {
+        this.#flux_format ??= (await import("./Libs/flux-format/src/FluxFormat.mjs")).FluxFormat.new();
+
+        return this.#flux_format;
     }
 
     /**
@@ -1029,7 +1045,8 @@ export class FluxFieldValueStorageUI {
             this.#value_element.appendChild(error_element);
         }
 
-        this.#value_element.appendChild((await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.new(
+        this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
+            await this.#getFluxFormat(),
             [
                 {
                     action: () => {
@@ -1059,14 +1076,15 @@ export class FluxFieldValueStorageUI {
             ],
             this.#value_table?.columns?.concat([
                 {
-                    key: COLUMN_KEY_ACTIONS,
-                    label: "Actions"
+                    key: "actions",
+                    label: "Actions",
+                    "format-type": FORMAT_TYPE_FLUX_TABLE_ACTIONS
                 }
             ]) ?? null,
             "name",
             this.#value_table?.rows?.map(row => ({
                 ...row,
-                [COLUMN_KEY_ACTIONS]: row["has-value"] ? [
+                actions: row["has-value"] ? [
                     {
                         action: async () => {
                             if (!await this.#editValue(

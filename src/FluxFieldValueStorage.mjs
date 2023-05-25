@@ -16,11 +16,13 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("./FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../flux-authentication-backend/src/FluxAuthenticationBackend.mjs").FluxAuthenticationBackend} FluxAuthenticationBackend */
 /** @typedef {import("../../flux-config-api/src/FluxConfigApi.mjs").FluxConfigApi} FluxConfigApi */
+/** @typedef {import("../../flux-format/src/FluxFormat.mjs").FluxFormat} FluxFormat */
 /** @typedef {import("../../flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("../../flux-mongo-db-connector/src/FluxMongoDbConnector.mjs").FluxMongoDbConnector} FluxMongoDbConnector */
 /** @typedef {import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs").FluxShutdownHandler} FluxShutdownHandler */
 /** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value/Value.mjs").Value} Value */
+/** @typedef {import("./Value/ValueAsFormat.mjs").ValueAsFormat} ValueAsFormat */
 /** @typedef {import("./Value/ValueAsText.mjs").ValueAsText} ValueAsText */
 /** @typedef {import("./Value/ValueService.mjs").ValueService} ValueService */
 /** @typedef {import("./Value/ValueTable.mjs").ValueTable} ValueTable */
@@ -42,6 +44,10 @@ export class FluxFieldValueStorage {
      * @type {FluxConfigApi | null}
      */
     #flux_config_api = null;
+    /**
+     * @type {FluxFormat | null}
+     */
+    #flux_format = null;
     /**
      * @type {FluxHttpApi | null}
      */
@@ -219,6 +225,24 @@ export class FluxFieldValueStorage {
             name: value.name,
             values: field_values
         };
+    }
+
+    /**
+     * @param {string} name
+     * @returns {Promise<ValueAsFormat[] | null>}
+     */
+    async getValueAsFormat(name) {
+        const value = await this.getValue(
+            name
+        );
+
+        if (value === null) {
+            return null;
+        }
+
+        return (await this.#getFieldService()).getValueAsFormat(
+            value
+        );
     }
 
     /**
@@ -559,7 +583,9 @@ export class FluxFieldValueStorage {
      * @returns {Promise<FieldTypeService>}
      */
     async #getFieldTypeService() {
-        this.#field_type_service ??= (await import("./FieldType/FieldTypeService.mjs")).FieldTypeService.new();
+        this.#field_type_service ??= (await import("./FieldType/FieldTypeService.mjs")).FieldTypeService.new(
+            await this.#getFluxFormat()
+        );
 
         return this.#field_type_service;
     }
@@ -598,6 +624,15 @@ export class FluxFieldValueStorage {
         );
 
         return this.#flux_config_api;
+    }
+
+    /**
+     * @returns {Promise<FluxFormat>}
+     */
+    async #getFluxFormat() {
+        this.#flux_format ??= (await import("../../flux-format/src/FluxFormat.mjs")).FluxFormat.new();
+
+        return this.#flux_format;
     }
 
     /**

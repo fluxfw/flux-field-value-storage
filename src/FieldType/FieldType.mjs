@@ -20,6 +20,13 @@ export class FieldType {
     getFieldTableAdditionalColumn(field) { }
 
     /**
+     * @param {Field} field
+     * @returns {Promise<string>}
+     * @abstract
+     */
+    getFormatType(field) { }
+
+    /**
      * @returns {Promise<string>}
      * @abstract
      */
@@ -34,7 +41,15 @@ export class FieldType {
     /**
      * @param {Field} field
      * @param {*} value
-     * @returns {Promise<string>}
+     * @returns {Promise<*>}
+     * @abstract
+     */
+    getValueAsFormat(field, value) { }
+
+    /**
+     * @param {Field} field
+     * @param {*} value
+     * @returns {Promise<*>}
      * @abstract
      */
     getValueAsText(field, value) { }

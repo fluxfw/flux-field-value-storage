@@ -1,4 +1,5 @@
 import { FIELD_TYPE_INTEGER } from "./FIELD_TYPE.mjs";
+import { FORMAT_TYPE_TEXT } from "../../../flux-format/src/FORMAT_TYPE.mjs";
 import { INPUT_TYPE_NUMBER } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -66,6 +67,14 @@ export class IntegerFieldType {
     }
 
     /**
+     * @param {Field} field
+     * @returns {Promise<string>}
+     */
+    async getFormatType(field) {
+        return FORMAT_TYPE_TEXT;
+    }
+
+    /**
      * @returns {Promise<string>}
      */
     async getType() {
@@ -82,10 +91,19 @@ export class IntegerFieldType {
     /**
      * @param {Field} field
      * @param {number | null} value
-     * @returns {Promise<string>}
+     * @returns {Promise<number | null>}
+     */
+    async getValueAsFormat(field, value = null) {
+        return value;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {number | null} value
+     * @returns {Promise<number | null>}
      */
     async getValueAsText(field, value = null) {
-        return `${value ?? "-"}`;
+        return value;
     }
 
     /**
