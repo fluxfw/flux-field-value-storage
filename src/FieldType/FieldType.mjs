@@ -24,7 +24,7 @@ export class FieldType {
      * @returns {Promise<string>}
      * @abstract
      */
-    getFormatType(field) { }
+    getValueFormatType(field) { }
 
     /**
      * @returns {Promise<string>}

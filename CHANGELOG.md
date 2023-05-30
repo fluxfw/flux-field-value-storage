@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2023-05-30-1-beta
+
+Changes:
+
+- Natvie `adoptedStyleSheets`
+- `flux-value-format`
+
 ## v2023-05-25-1-beta
 
 Changes:

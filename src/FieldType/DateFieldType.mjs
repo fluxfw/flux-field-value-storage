@@ -1,6 +1,6 @@
 import { FIELD_TYPE_DATE } from "./FIELD_TYPE.mjs";
-import { FORMAT_TYPE_TEXT } from "../../../flux-format/src/FORMAT_TYPE.mjs";
 import { INPUT_TYPE_DATE } from "../../../flux-form/src/INPUT_TYPE.mjs";
+import { VALUE_FORMAT_TYPE_TEXT } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -68,8 +68,8 @@ export class DateFieldType {
      * @param {Field} field
      * @returns {Promise<string>}
      */
-    async getFormatType(field) {
-        return FORMAT_TYPE_TEXT;
+    async getValueFormatType(field) {
+        return VALUE_FORMAT_TYPE_TEXT;
     }
 
     /**

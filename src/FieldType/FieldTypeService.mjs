@@ -1,38 +1,51 @@
-import { FORMAT_TYPE_TEXT } from "../../../flux-format/src/FORMAT_TYPE.mjs";
+import { VALUE_FORMAT_TYPE_TEXT } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
 import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL, FIELD_TYPE_FLOAT, FIELD_TYPE_INTEGER, FIELD_TYPE_MULTILINE_TEXT, FIELD_TYPE_MULTIPLE_SELECT, FIELD_TYPE_PASSWORD, FIELD_TYPE_REGULAR_EXPRESSION, FIELD_TYPE_SELECT, FIELD_TYPE_TEXT, FIELD_TYPE_TIME, FIELD_TYPE_URL } from "./FIELD_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
-/** @typedef {import("../../../flux-format/src/FluxFormat.mjs").FluxFormat} FluxFormat */
+/** @typedef {import("../../../flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 export class FieldTypeService {
     /**
      * @type {Map<string, FieldType>}
      */
+    #custom_field_types;
+    /**
+     * @type {Map<string, FieldType>}
+     */
     #field_types;
     /**
-     * @type {FluxFormat}
+     * @type {FluxValueFormat}
      */
-    #flux_format;
+    #flux_value_format;
 
     /**
-     * @param {FluxFormat} flux_format
+     * @param {FluxValueFormat} flux_value_format
      * @returns {FieldTypeService}
      */
-    static new(flux_format) {
+    static new(flux_value_format) {
         return new this(
-            flux_format
+            flux_value_format
         );
     }
 
     /**
-     * @param {FluxFormat} flux_format
+     * @param {FluxValueFormat} flux_value_format
      * @private
      */
-    constructor(flux_format) {
-        this.#flux_format = flux_format;
+    constructor(flux_value_format) {
+        this.#custom_field_types = new Map();
+        this.#flux_value_format = flux_value_format;
         this.#field_types = new Map();
+    }
+
+    /**
+     * @param {FieldType} field_type
+     * @returns {Promise<void>}
+     */
+    async addFieldType(field_type) {
+        this.#custom_field_types.set(await field_type.getType(), field_type);
     }
 
     /**
@@ -152,7 +165,7 @@ export class FieldTypeService {
                     break;
 
                 default:
-                    break;
+                    return this.#custom_field_types.get(type) ?? null;
             }
 
             this.#field_types.set(type, field_type);
@@ -195,16 +208,16 @@ export class FieldTypeService {
      * @param {Field} field
      * @returns {Promise<string>}
      */
-    async getFormatType(field) {
+    async getValueFormatType(field) {
         const field_type = await this.getFieldType(
             field.type
         );
 
         if (field_type === null) {
-            return FORMAT_TYPE_TEXT;
+            return VALUE_FORMAT_TYPE_TEXT;
         }
 
-        return field_type.getFormatType();
+        return field_type.getValueFormatType();
     }
 
     /**
@@ -269,12 +282,12 @@ export class FieldTypeService {
             field.type
         );
 
-        return this.#flux_format.formatValue(
+        return this.#flux_value_format.formatValue(
             field_type !== null ? await field_type.getValueAsText(
                 field,
                 value
             ) : value,
-            FORMAT_TYPE_TEXT
+            VALUE_FORMAT_TYPE_TEXT
         );
     }
 

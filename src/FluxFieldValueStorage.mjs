@@ -13,10 +13,11 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("./Field/Field.mjs").Field} Field */
 /** @typedef {import("./Field/FieldService.mjs").FieldService} FieldService */
 /** @typedef {import("./Field/FieldTable.mjs").FieldTable} FieldTable */
+/** @typedef {import("./FieldType/FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("./FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../flux-authentication-backend/src/FluxAuthenticationBackend.mjs").FluxAuthenticationBackend} FluxAuthenticationBackend */
 /** @typedef {import("../../flux-config-api/src/FluxConfigApi.mjs").FluxConfigApi} FluxConfigApi */
-/** @typedef {import("../../flux-format/src/FluxFormat.mjs").FluxFormat} FluxFormat */
+/** @typedef {import("../../flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("../../flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("../../flux-mongo-db-connector/src/FluxMongoDbConnector.mjs").FluxMongoDbConnector} FluxMongoDbConnector */
 /** @typedef {import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs").FluxShutdownHandler} FluxShutdownHandler */
@@ -45,9 +46,9 @@ export class FluxFieldValueStorage {
      */
     #flux_config_api = null;
     /**
-     * @type {FluxFormat | null}
+     * @type {FluxValueFormat | null}
      */
-    #flux_format = null;
+    #flux_value_format = null;
     /**
      * @type {FluxHttpApi | null}
      */
@@ -85,6 +86,16 @@ export class FluxFieldValueStorage {
      */
     constructor(flux_shutdown_handler) {
         this.#flux_shutdown_handler = flux_shutdown_handler;
+    }
+
+    /**
+     * @param {FieldType} field_type
+     * @returns {Promise<void>}
+     */
+    async addFieldType(field_type) {
+        await (await this.#getFieldTypeService()).addFieldType(
+            field_type
+        );
     }
 
     /**
@@ -584,7 +595,7 @@ export class FluxFieldValueStorage {
      */
     async #getFieldTypeService() {
         this.#field_type_service ??= (await import("./FieldType/FieldTypeService.mjs")).FieldTypeService.new(
-            await this.#getFluxFormat()
+            await this.#getFluxValueFormat()
         );
 
         return this.#field_type_service;
@@ -627,12 +638,12 @@ export class FluxFieldValueStorage {
     }
 
     /**
-     * @returns {Promise<FluxFormat>}
+     * @returns {Promise<FluxValueFormat>}
      */
-    async #getFluxFormat() {
-        this.#flux_format ??= (await import("../../flux-format/src/FluxFormat.mjs")).FluxFormat.new();
+    async #getFluxValueFormat() {
+        this.#flux_value_format ??= (await import("../../flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
 
-        return this.#flux_format;
+        return this.#flux_value_format;
     }
 
     /**

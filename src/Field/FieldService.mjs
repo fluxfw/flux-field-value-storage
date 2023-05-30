@@ -299,7 +299,7 @@ export class FieldService {
             values.push({
                 name: field.name,
                 label: field.label,
-                type: await this.#field_type_service.getFormatType(
+                type: await this.#field_type_service.getValueFormatType(
                     field
                 ),
                 value: await this.#field_type_service.getValueAsFormat(
@@ -374,7 +374,7 @@ export class FieldService {
             columns.push({
                 key: `field-${field.name}`,
                 label: field.label,
-                "format-type": await this.#field_type_service.getFormatType(
+                "value-format-type": await this.#field_type_service.getValueFormatType(
                     field
                 )
             });
