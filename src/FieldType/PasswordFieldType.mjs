@@ -1,5 +1,4 @@
 import { FIELD_TYPE_PASSWORD } from "./FIELD_TYPE.mjs";
-import { VALUE_FORMAT_TYPE_TEXT } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
 import { INPUT_TYPE_PASSWORD, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -53,11 +52,10 @@ export class PasswordFieldType {
     }
 
     /**
-     * @param {Field} field
-     * @returns {Promise<string>}
+     * @returns {Promise<null>}
      */
-    async getValueFormatType(field) {
-        return VALUE_FORMAT_TYPE_TEXT;
+    async getFormatValueType() {
+        return null;
     }
 
     /**

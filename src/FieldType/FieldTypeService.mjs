@@ -1,5 +1,4 @@
-import { VALUE_FORMAT_TYPE_TEXT } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
-import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL, FIELD_TYPE_FLOAT, FIELD_TYPE_INTEGER, FIELD_TYPE_MULTILINE_TEXT, FIELD_TYPE_MULTIPLE_SELECT, FIELD_TYPE_PASSWORD, FIELD_TYPE_REGULAR_EXPRESSION, FIELD_TYPE_SELECT, FIELD_TYPE_TEXT, FIELD_TYPE_TIME, FIELD_TYPE_URL } from "./FIELD_TYPE.mjs";
+import { DEFAULT_FIELD_TYPES } from "./DEFAULT_FIELD_TYPES.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -7,10 +6,6 @@ import { FIELD_TYPE_BOOLEAN, FIELD_TYPE_COLOR, FIELD_TYPE_DATE, FIELD_TYPE_EMAIL
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
 export class FieldTypeService {
-    /**
-     * @type {Map<string, FieldType>}
-     */
-    #custom_field_types;
     /**
      * @type {Map<string, FieldType>}
      */
@@ -35,9 +30,14 @@ export class FieldTypeService {
      * @private
      */
     constructor(flux_value_format) {
-        this.#custom_field_types = new Map();
         this.#flux_value_format = flux_value_format;
         this.#field_types = new Map();
+
+        for (const field_type of DEFAULT_FIELD_TYPES) {
+            this.addFieldType(
+                field_type
+            ).catch(console.error);
+        }
     }
 
     /**
@@ -45,7 +45,13 @@ export class FieldTypeService {
      * @returns {Promise<void>}
      */
     async addFieldType(field_type) {
-        this.#custom_field_types.set(await field_type.getType(), field_type);
+        const type = await field_type.getType();
+
+        if (this.#field_types.has(type)) {
+            throw new Error(`Field type ${type} already exists`);
+        }
+
+        this.#field_types.set(type, field_type);
     }
 
     /**
@@ -102,122 +108,30 @@ export class FieldTypeService {
      * @returns {Promise<FieldType | null>}
      */
     async getFieldType(type) {
-        let field_type = null;
-
-        if (this.#field_types.has(type)) {
-            field_type = this.#field_types.get(type) ?? null;
-        } else {
-            switch (type) {
-                case FIELD_TYPE_BOOLEAN:
-                    field_type = (await import("./BooleanFieldType.mjs")).BooleanFieldType.new();
-                    break;
-
-                case FIELD_TYPE_COLOR:
-                    field_type = (await import("./ColorFieldType.mjs")).ColorFieldType.new();
-                    break;
-
-                case FIELD_TYPE_DATE:
-                    field_type = (await import("./DateFieldType.mjs")).DateFieldType.new();
-                    break;
-
-                case FIELD_TYPE_EMAIL:
-                    field_type = (await import("./EmailFieldType.mjs")).EmailFieldType.new();
-                    break;
-
-                case FIELD_TYPE_FLOAT:
-                    field_type = (await import("./FloatFieldType.mjs")).FloatFieldType.new();
-                    break;
-
-                case FIELD_TYPE_INTEGER:
-                    field_type = (await import("./IntegerFieldType.mjs")).IntegerFieldType.new();
-                    break;
-
-                case FIELD_TYPE_MULTILINE_TEXT:
-                    field_type = (await import("./MultilineTextFieldType.mjs")).MultilineTextFieldType.new();
-                    break;
-
-                case FIELD_TYPE_MULTIPLE_SELECT:
-                    field_type = (await import("./MultipleSelectFieldType.mjs")).MultipleSelectFieldType.new();
-                    break;
-
-                case FIELD_TYPE_PASSWORD:
-                    field_type = (await import("./PasswordFieldType.mjs")).PasswordFieldType.new();
-                    break;
-
-                case FIELD_TYPE_REGULAR_EXPRESSION:
-                    field_type = (await import("./RegularExpressionFieldType.mjs")).RegularExpressionFieldType.new();
-                    break;
-
-                case FIELD_TYPE_SELECT:
-                    field_type = (await import("./SelectFieldType.mjs")).SelectFieldType.new();
-                    break;
-
-                case FIELD_TYPE_TEXT:
-                    field_type = (await import("./TextFieldType.mjs")).TextFieldType.new();
-                    break;
-
-                case FIELD_TYPE_TIME:
-                    field_type = (await import("./TimeFieldType.mjs")).TimeFieldType.new();
-                    break;
-
-                case FIELD_TYPE_URL:
-                    field_type = (await import("./UrlFieldType.mjs")).UrlFieldType.new();
-                    break;
-
-                default:
-                    return this.#custom_field_types.get(type) ?? null;
-            }
-
-            this.#field_types.set(type, field_type);
-        }
-
-        return field_type;
+        return this.#field_types.get(type) ?? null;
     }
 
     /**
      * @returns {Promise<FieldType[]>}
      */
     async getFieldTypes() {
-        const field_types = [];
-
-        for (const type of [
-            FIELD_TYPE_BOOLEAN,
-            FIELD_TYPE_COLOR,
-            FIELD_TYPE_DATE,
-            FIELD_TYPE_EMAIL,
-            FIELD_TYPE_FLOAT,
-            FIELD_TYPE_INTEGER,
-            FIELD_TYPE_MULTILINE_TEXT,
-            FIELD_TYPE_MULTIPLE_SELECT,
-            FIELD_TYPE_PASSWORD,
-            FIELD_TYPE_REGULAR_EXPRESSION,
-            FIELD_TYPE_SELECT,
-            FIELD_TYPE_TEXT,
-            FIELD_TYPE_TIME,
-            FIELD_TYPE_URL
-        ]) {
-            field_types.push(await this.getFieldType(
-                type
-            ));
-        }
-
-        return field_types;
+        return Array.from(this.#field_types.values());
     }
 
     /**
      * @param {Field} field
-     * @returns {Promise<string>}
+     * @returns {Promise<string | null>}
      */
-    async getValueFormatType(field) {
+    async getFormatValueType(field) {
         const field_type = await this.getFieldType(
             field.type
         );
 
         if (field_type === null) {
-            return VALUE_FORMAT_TYPE_TEXT;
+            return null;
         }
 
-        return field_type.getValueFormatType();
+        return field_type.getFormatValueType();
     }
 
     /**
@@ -286,8 +200,7 @@ export class FieldTypeService {
             field_type !== null ? await field_type.getValueAsText(
                 field,
                 value
-            ) : value,
-            VALUE_FORMAT_TYPE_TEXT
+            ) : value
         );
     }
 

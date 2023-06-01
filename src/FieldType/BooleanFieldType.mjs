@@ -1,6 +1,5 @@
 import { FIELD_TYPE_BOOLEAN } from "./FIELD_TYPE.mjs";
 import { INPUT_TYPE_CHECKBOX } from "../../../flux-form/src/INPUT_TYPE.mjs";
-import { VALUE_FORMAT_TYPE_TEXT } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -25,27 +24,24 @@ export class BooleanFieldType {
     }
 
     /**
-     * @param {Field | null} field
      * @returns {Promise<null>}
      */
-    async getFieldInputs(field = null) {
+    async getFieldInputs() {
         return null;
     }
 
     /**
-     * @param {Field} field
      * @returns {Promise<null>}
      */
-    async getFieldTableAdditionalColumn(field) {
+    async getFieldTableAdditionalColumn() {
         return null;
     }
 
     /**
-     * @param {Field} field
-     * @returns {Promise<string>}
+     * @returns {Promise<null>}
      */
-    async getValueFormatType(field) {
-        return VALUE_FORMAT_TYPE_TEXT;
+    async getFormatValueType() {
+        return null;
     }
 
     /**
@@ -96,10 +92,9 @@ export class BooleanFieldType {
     }
 
     /**
-     * @param {{[key: string]: *}} field
      * @returns {Promise<null>}
      */
-    async mapGetField(field) {
+    async mapGetField() {
         return null;
     }
 
@@ -113,10 +108,9 @@ export class BooleanFieldType {
     }
 
     /**
-     * @param {Field} field
      * @returns {Promise<null>}
      */
-    async mapStoreField(field) {
+    async mapStoreField() {
         return null;
     }
 
@@ -130,10 +124,9 @@ export class BooleanFieldType {
     }
 
     /**
-     * @param {Field} field
      * @returns {Promise<boolean>}
      */
-    async validateField(field) {
+    async validateField() {
         return true;
     }
 

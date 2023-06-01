@@ -17,10 +17,10 @@ import { SERVER_DEFAULT_DISABLE_HTTP_IF_HTTPS, SERVER_DEFAULT_LISTEN_HTTP_PORT, 
 /** @typedef {import("./FieldType/FieldTypeService.mjs").FieldTypeService} FieldTypeService */
 /** @typedef {import("../../flux-authentication-backend/src/FluxAuthenticationBackend.mjs").FluxAuthenticationBackend} FluxAuthenticationBackend */
 /** @typedef {import("../../flux-config-api/src/FluxConfigApi.mjs").FluxConfigApi} FluxConfigApi */
-/** @typedef {import("../../flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("../../flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("../../flux-mongo-db-connector/src/FluxMongoDbConnector.mjs").FluxMongoDbConnector} FluxMongoDbConnector */
 /** @typedef {import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs").FluxShutdownHandler} FluxShutdownHandler */
+/** @typedef {import("../../flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Value/Value.mjs").Value} Value */
 /** @typedef {import("./Value/ValueAsFormat.mjs").ValueAsFormat} ValueAsFormat */
@@ -46,10 +46,6 @@ export class FluxFieldValueStorage {
      */
     #flux_config_api = null;
     /**
-     * @type {FluxValueFormat | null}
-     */
-    #flux_value_format = null;
-    /**
      * @type {FluxHttpApi | null}
      */
     #flux_http_api = null;
@@ -61,6 +57,10 @@ export class FluxFieldValueStorage {
      * @type {FluxShutdownHandler}
      */
     #flux_shutdown_handler;
+    /**
+     * @type {FluxValueFormat | null}
+     */
+    #flux_value_format = null;
     /**
      * @type {Db | null}
      */
@@ -638,15 +638,6 @@ export class FluxFieldValueStorage {
     }
 
     /**
-     * @returns {Promise<FluxValueFormat>}
-     */
-    async #getFluxValueFormat() {
-        this.#flux_value_format ??= (await import("../../flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
-
-        return this.#flux_value_format;
-    }
-
-    /**
      * @returns {Promise<FluxHttpApi>}
      */
     async #getFluxHttpApi() {
@@ -666,6 +657,15 @@ export class FluxFieldValueStorage {
         );
 
         return this.#flux_mongo_db_connector;
+    }
+
+    /**
+     * @returns {Promise<FluxValueFormat>}
+     */
+    async #getFluxValueFormat() {
+        this.#flux_value_format ??= (await import("../../flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
+
+        return this.#flux_value_format;
     }
 
     /**

@@ -21,10 +21,10 @@ export class FieldType {
 
     /**
      * @param {Field} field
-     * @returns {Promise<string>}
+     * @returns {Promise<string | null>}
      * @abstract
      */
-    getValueFormatType(field) { }
+    getFormatValueType(field) { }
 
     /**
      * @returns {Promise<string>}

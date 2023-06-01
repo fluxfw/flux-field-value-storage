@@ -1,8 +1,8 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
+import { FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS } from "./Libs/flux-table/src/FORMAT_VALUE_TYPE.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
-import { VALUE_FORMAT_TYPE_FLUX_TABLE_ACTIONS } from "./Libs/flux-table/src/VALUE_FORMAT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
 import { ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST, ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST } from "./Libs/flux-table/src/ROW_ACTION_UPDATE_TYPE.mjs";
 
@@ -10,9 +10,9 @@ import { ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST, ROW_ACTION_UPDATE_TYPE_DISABLE
 /** @typedef {import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs").FluxButtonGroupElement} FluxButtonGroupElement */
 /** @typedef {import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs").FluxColorScheme} FluxColorScheme */
 /** @typedef {import("./Libs/flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
-/** @typedef {import("./Libs/flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("./Libs/flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs").FluxPwaApi} FluxPwaApi */
+/** @typedef {import("./Libs/flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("./Libs/flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
@@ -32,10 +32,6 @@ export class FluxFieldValueStorageUI {
      */
     #flux_color_scheme = null;
     /**
-     * @type {FluxValueFormat | null}
-     */
-    #flux_value_format = null;
-    /**
      * @type {FluxHttpApi | null}
      */
     #flux_http_api = null;
@@ -43,6 +39,10 @@ export class FluxFieldValueStorageUI {
      * @type {FluxPwaApi | null}
      */
     #flux_pwa_api = null;
+    /**
+     * @type {FluxValueFormat | null}
+     */
+    #flux_value_format = null;
     /**
      * @type {HTMLDivElement | null}
      */
@@ -807,8 +807,9 @@ export class FluxFieldValueStorageUI {
             }
         }
 
+        const flux_value_format = await this.#getFluxValueFormat();
+
         const flux_table_element = await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
-            await this.#getFluxValueFormat(),
             [
                 {
                     action: async () => {
@@ -838,7 +839,7 @@ export class FluxFieldValueStorageUI {
                 {
                     key: "actions",
                     label: "Actions",
-                    "value-format-type": VALUE_FORMAT_TYPE_FLUX_TABLE_ACTIONS
+                    type: FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS
                 }
             ],
             "name",
@@ -931,6 +932,10 @@ export class FluxFieldValueStorageUI {
                     }
                 ]
             })),
+            async (value = null, type = null) => flux_value_format.formatValue(
+                value,
+                type
+            ),
             "No fields"
         );
         this.#field_element.appendChild(flux_table_element);
@@ -953,15 +958,6 @@ export class FluxFieldValueStorageUI {
     }
 
     /**
-     * @returns {Promise<FluxValueFormat>}
-     */
-    async #getFluxValueFormat() {
-        this.#flux_value_format ??= (await import("./Libs/flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
-
-        return this.#flux_value_format;
-    }
-
-    /**
      * @returns {Promise<FluxHttpApi>}
      */
     async #getFluxHttpApi() {
@@ -979,6 +975,15 @@ export class FluxFieldValueStorageUI {
         );
 
         return this.#flux_pwa_api;
+    }
+
+    /**
+     * @returns {Promise<FluxValueFormat>}
+     */
+    async #getFluxValueFormat() {
+        this.#flux_value_format ??= (await import("./Libs/flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
+
+        return this.#flux_value_format;
     }
 
     /**
@@ -1044,12 +1049,13 @@ export class FluxFieldValueStorageUI {
             this.#value_element.appendChild(error_element);
         }
 
+        const flux_value_format = await this.#getFluxValueFormat();
+
         this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
-            await this.#getFluxValueFormat(),
             [
                 {
-                    action: () => {
-                        if (!this.#value_table_filter_form_element.validate()) {
+                    action: async () => {
+                        if (!await this.#value_table_filter_form_element.validate()) {
                             return;
                         }
 
@@ -1077,7 +1083,7 @@ export class FluxFieldValueStorageUI {
                 {
                     key: "actions",
                     label: "Actions",
-                    "value-format-type": VALUE_FORMAT_TYPE_FLUX_TABLE_ACTIONS
+                    type: FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS
                 }
             ]) ?? null,
             "name",
@@ -1126,6 +1132,10 @@ export class FluxFieldValueStorageUI {
                     }
                 ]
             })) ?? null,
+            async (value = null, type = null) => flux_value_format.formatValue(
+                value,
+                type
+            ),
             "No values"
         ));
     }

@@ -269,9 +269,19 @@ export class FieldService {
     async getFieldTypeInputs() {
         const options = [];
 
-        for (const field_type of await this.#field_type_service.getFieldTypes()) {
+        for (const [
+            label,
+            field_type
+        ] of (await Promise.all((await this.#field_type_service.getFieldTypes()).map(async _field_type => [
+            await _field_type.getTypeLabel(),
+            _field_type
+        ]))).sort(([
+            label_1
+        ], [
+            label_2
+        ]) => (label_1 > label_2 ? 1 : label_1 < label_2 ? -1 : 0))) {
             options.push({
-                label: await field_type.getTypeLabel(),
+                label,
                 value: await field_type.getType()
             });
         }
@@ -299,7 +309,7 @@ export class FieldService {
             values.push({
                 name: field.name,
                 label: field.label,
-                type: await this.#field_type_service.getValueFormatType(
+                type: await this.#field_type_service.getFormatValueType(
                     field
                 ),
                 value: await this.#field_type_service.getValueAsFormat(
@@ -374,7 +384,7 @@ export class FieldService {
             columns.push({
                 key: `field-${field.name}`,
                 label: field.label,
-                "value-format-type": await this.#field_type_service.getValueFormatType(
+                type: await this.#field_type_service.getFormatValueType(
                     field
                 )
             });

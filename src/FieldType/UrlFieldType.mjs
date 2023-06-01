@@ -1,5 +1,5 @@
 import { FIELD_TYPE_URL } from "./FIELD_TYPE.mjs";
-import { VALUE_FORMAT_TYPE_URL } from "../../../flux-value-format/src/VALUE_FORMAT_TYPE.mjs";
+import { FORMAT_VALUE_TYPE_URL } from "../../../flux-value-format/src/FORMAT_VALUE_TYPE.mjs";
 import { INPUT_TYPE_TEXT, INPUT_TYPE_URL } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
@@ -53,11 +53,10 @@ export class UrlFieldType {
     }
 
     /**
-     * @param {Field} field
      * @returns {Promise<string>}
      */
-    async getValueFormatType(field) {
-        return VALUE_FORMAT_TYPE_URL;
+    async getFormatValueType() {
+        return FORMAT_VALUE_TYPE_URL;
     }
 
     /**
