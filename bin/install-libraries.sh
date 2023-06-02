@@ -23,9 +23,9 @@ checkAlreadyInstalled
 
 installLibrary flux-authentication-backend https://github.com/fluxfw/flux-authentication-backend/archive/refs/tags/v2023-04-20-2.tar.gz
 
-installLibrary flux-button-group https://github.com/fluxfw/flux-button-group/archive/refs/tags/v2023-05-30-1.tar.gz
+installLibrary flux-button-group https://github.com/fluxfw/flux-button-group/archive/refs/tags/v2023-06-02-1.tar.gz
 
-installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-05-30-1.tar.gz
+installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-06-02-1.tar.gz
 
 installLibrary flux-config-api https://github.com/fluxfw/flux-config-api/archive/refs/tags/v2023-04-12-1.tar.gz
 
@@ -47,8 +47,8 @@ installLibrary flux-pwa-generator https://github.com/fluxfw/flux-pwa-generator/a
 
 installLibrary flux-shutdown-handler https://github.com/fluxfw/flux-shutdown-handler/archive/refs/tags/v2023-03-16-1.tar.gz
 
-installLibrary flux-table https://github.com/fluxfw/flux-table/archive/refs/tags/v2023-06-01-1.tar.gz
+installLibrary flux-table https://github.com/fluxfw/flux-table/archive/refs/tags/v2023-06-02-1.tar.gz
 
-installLibrary flux-value-format https://github.com/fluxfw/flux-value-format/archive/refs/tags/v2023-06-01-1.tar.gz
+installLibrary flux-value-format https://github.com/fluxfw/flux-value-format/archive/refs/tags/v2023-06-02-4.tar.gz
 
 installLibrary mime-db https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz

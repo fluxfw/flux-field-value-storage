@@ -1,10 +1,8 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
-import { FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS } from "./Libs/flux-table/src/FORMAT_VALUE_TYPE.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
-import { ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST, ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST } from "./Libs/flux-table/src/ROW_ACTION_UPDATE_TYPE.mjs";
 
 /** @typedef {import("../Field/FieldTable.mjs").FieldTable} FieldTable */
 /** @typedef {import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs").FluxButtonGroupElement} FluxButtonGroupElement */
@@ -807,135 +805,193 @@ export class FluxFieldValueStorageUI {
             }
         }
 
+        const {
+            FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
+        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT.mjs");
+        const {
+            FluxButtonOnlyButtonGroupElement
+        } = await import("./Libs/flux-button-group/src/FluxButtonOnlyButtonGroupElement.mjs");
+        const actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+            [
+                {
+                    label: "Add",
+                    value: "add"
+                },
+                {
+                    label: "Refresh",
+                    value: "refresh"
+                }
+            ]
+        );
+        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+            switch (e.detail.value) {
+                case "add":
+                    if (!await this.#addField()) {
+                        return;
+                    }
+
+                    this.#field_table = null;
+                    this.#value_table_filter_form_element = null;
+                    this.#value_table = null;
+                    this.#getFieldTable();
+                    break;
+
+                case "refresh":
+                    this.#field_table = null;
+                    this.#value_table_filter_form_element = null;
+                    this.#value_table = null;
+                    this.#getFieldTable();
+                    break;
+
+                default:
+                    break;
+            }
+        });
+        this.#field_element.appendChild(actions_flux_button_only_button_group_element);
+
         const flux_value_format = await this.#getFluxValueFormat();
 
         const flux_table_element = await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
-            [
-                {
-                    action: async () => {
-                        if (!await this.#addField()) {
-                            return;
-                        }
-
-                        this.#field_table = null;
-                        this.#value_table_filter_form_element = null;
-                        this.#value_table = null;
-                        this.#getFieldTable();
-                    },
-                    label: "Add"
-                },
-                {
-                    action: () => {
-                        this.#field_table = null;
-                        this.#value_table_filter_form_element = null;
-                        this.#value_table = null;
-                        this.#getFieldTable();
-                    },
-                    label: "Refresh"
-                }
-            ],
             [
                 ...this.#field_table.columns,
                 {
                     key: "actions",
                     label: "Actions",
-                    type: FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS
+                    "update-rows": true,
+                    type: "actions",
+                    width: "1px"
                 }
             ],
             "name",
-            this.#field_table.rows.map(row => ({
-                ...row,
-                actions: [
-                    {
-                        action: async () => {
-                            if (! await this.#editField(
-                                row.name
-                            )) {
-                                return;
+            this.#field_table.rows,
+            async (value = null, type = null, name = null) => {
+                const row = this.#field_table.rows.find(_row => _row.name === name) ?? null;
+
+                if (type === "actions") {
+                    const row_actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+                        [
+                            {
+                                label: "Edit",
+                                value: "edit"
+                            },
+                            {
+                                label: "/\\",
+                                title: "Move up",
+                                value: "move-up"
+                            },
+                            {
+                                label: "\\/",
+                                title: "Move down",
+                                value: "move-down"
+                            },
+                            {
+                                label: "Delete",
+                                value: "delete"
                             }
+                        ]
+                    );
+                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+                        switch (e.detail.value) {
+                            case "delete":
+                                if (!await this.#deleteField(
+                                    row.name
+                                )) {
+                                    return;
+                                }
 
-                            this.#field_table = null;
-                            this.#value_table_filter_form_element = null;
-                            this.#value_table = null;
-                            this.#getFieldTable();
-                        },
-                        label: "Edit"
-                    },
-                    {
-                        action: async () => {
-                            if (!await this.#moveFieldUp(
-                                row.name
-                            )) {
-                                return;
+                                this.#field_table.rows.splice(this.#field_table.rows.indexOf(row), 1);
+
+                                await flux_table_element.deleteRow(
+                                    row.name
+                                );
+
+                                this.#value_table_filter_form_element = null;
+                                this.#value_table = null;
+                                break;
+
+                            case "edit":
+                                if (! await this.#editField(
+                                    row.name
+                                )) {
+                                    return;
+                                }
+
+                                this.#field_table = null;
+                                this.#value_table_filter_form_element = null;
+                                this.#value_table = null;
+                                this.#getFieldTable();
+                                break;
+
+                            case "move-down": {
+                                if (!await this.#moveFieldDown(
+                                    row.name
+                                )) {
+                                    return;
+                                }
+
+                                const index = this.#field_table.rows.indexOf(row);
+                                if (index < this.#field_table.rows.length - 1) {
+                                    this.#field_table.rows.splice(index, 1);
+                                    this.#field_table.rows.splice(index + 1, 0, row);
+                                }
+
+                                await flux_table_element.moveRowDown(
+                                    row.name
+                                );
+
+                                this.#value_table_filter_form_element = null;
+                                this.#value_table = null;
                             }
+                                break;
 
-                            const index = this.#field_table.rows.indexOf(row);
-                            if (index > 0) {
-                                this.#field_table.rows.splice(index, 1);
-                                this.#field_table.rows.splice(index - 1, 0, row);
+                            case "move-up": {
+                                if (!await this.#moveFieldUp(
+                                    row.name
+                                )) {
+                                    return;
+                                }
+
+                                const index = this.#field_table.rows.indexOf(row);
+                                if (index > 0) {
+                                    this.#field_table.rows.splice(index, 1);
+                                    this.#field_table.rows.splice(index - 1, 0, row);
+                                }
+
+                                await flux_table_element.moveRowUp(
+                                    row.name
+                                );
+
+                                this.#value_table_filter_form_element = null;
+                                this.#value_table = null;
                             }
+                                break;
 
-                            await flux_table_element.moveRowUp(
-                                row.name
-                            );
+                            default:
+                                break;
+                        }
+                    });
+                    return row_actions_flux_button_only_button_group_element;
+                }
 
-                            this.#value_table_filter_form_element = null;
-                            this.#value_table = null;
-                        },
-                        label: "/\\",
-                        title: "Move up",
-                        "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_FIRST
-                    },
-                    {
-                        action: async () => {
-                            if (!await this.#moveFieldDown(
-                                row.name
-                            )) {
-                                return;
-                            }
+                return flux_value_format.formatValue(
+                    value,
+                    type
+                );
+            },
+            async (value, type, index) => {
+                if (type !== "actions" || !(value instanceof FluxButtonOnlyButtonGroupElement)) {
+                    return;
+                }
 
-                            const index = this.#field_table.rows.indexOf(row);
-                            if (index < this.#field_table.rows.length - 1) {
-                                this.#field_table.rows.splice(index, 1);
-                                this.#field_table.rows.splice(index + 1, 0, row);
-                            }
-
-                            await flux_table_element.moveRowDown(
-                                row.name
-                            );
-
-                            this.#value_table_filter_form_element = null;
-                            this.#value_table = null;
-                        },
-                        label: "\\/",
-                        title: "Move down",
-                        "update-type": ROW_ACTION_UPDATE_TYPE_DISABLE_ON_LAST
-                    },
-                    {
-                        action: async () => {
-                            if (!await this.#deleteField(
-                                row.name
-                            )) {
-                                return;
-                            }
-
-                            this.#field_table.rows.splice(this.#field_table.rows.indexOf(row), 1);
-
-                            await flux_table_element.deleteRow(
-                                row.name
-                            );
-
-                            this.#value_table_filter_form_element = null;
-                            this.#value_table = null;
-                        },
-                        label: "Delete"
-                    }
-                ]
-            })),
-            async (value = null, type = null) => flux_value_format.formatValue(
-                value,
-                type
-            ),
+                value.disabled = [
+                    ...index === 0 ? [
+                        "move-up"
+                    ] : [],
+                    ...index > this.#field_table.rows.length - 2 ? [
+                        "move-down"
+                    ] : []
+                ];
+            },
             "No fields"
         );
         this.#field_element.appendChild(flux_table_element);
@@ -1049,93 +1105,135 @@ export class FluxFieldValueStorageUI {
             this.#value_element.appendChild(error_element);
         }
 
-        const flux_value_format = await this.#getFluxValueFormat();
-
-        this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
+        const {
+            FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
+        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT.mjs");
+        const {
+            FluxButtonOnlyButtonGroupElement
+        } = await import("./Libs/flux-button-group/src/FluxButtonOnlyButtonGroupElement.mjs");
+        const actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
             [
                 {
-                    action: async () => {
-                        if (!await this.#value_table_filter_form_element.validate()) {
-                            return;
-                        }
-
-                        this.#value_table_filter = this.#value_table_filter_form_element.values;
-                        this.#value_table = null;
-                        this.#getValueTable();
-                    },
-                    label: "View"
+                    label: "View",
+                    value: "view"
                 },
                 ...this.#value_table?.["show-add-new"] ?? false ? [
                     {
-                        action: async () => {
-                            if (!await this.#addNewValue()) {
-                                return;
-                            }
-
-                            this.#value_table = null;
-                            this.#getValueTable();
-                        },
-                        label: "Add"
+                        label: "Add",
+                        value: "add"
                     }
                 ] : []
-            ],
+            ]
+        );
+        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+            switch (e.detail.value) {
+                case "add":
+                    if (!await this.#addNewValue()) {
+                        return;
+                    }
+
+                    this.#value_table = null;
+                    this.#getValueTable();
+                    break;
+
+                case "view":
+                    if (!await this.#value_table_filter_form_element.validate()) {
+                        return;
+                    }
+
+                    this.#value_table_filter = this.#value_table_filter_form_element.values;
+                    this.#value_table = null;
+                    this.#getValueTable();
+                    break;
+
+                default:
+                    break;
+            }
+        });
+        this.#value_element.appendChild(actions_flux_button_only_button_group_element);
+
+        const flux_value_format = await this.#getFluxValueFormat();
+
+        this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
             this.#value_table?.columns?.concat([
                 {
                     key: "actions",
                     label: "Actions",
-                    type: FORMAT_VALUE_TYPE_FLUX_TABLE_ACTIONS
+                    type: "actions",
+                    width: "1px"
                 }
             ]) ?? null,
             "name",
-            this.#value_table?.rows?.map(row => ({
-                ...row,
-                actions: row["has-value"] ? [
-                    {
-                        action: async () => {
-                            if (!await this.#editValue(
-                                row.name
-                            )) {
-                                return;
-                            }
+            this.#value_table?.rows ?? null,
+            async (value = null, type = null, name = null) => {
+                const row = this.#value_table.rows.find(_row => _row.name === name) ?? null;
 
-                            this.#value_table = null;
-                            this.#getValueTable();
-                        },
-                        label: "Edit"
-                    },
-                    {
-                        action: async () => {
-                            if (!await this.#deleteValue(
-                                row.name
-                            )) {
-                                return;
+                if (type === "actions") {
+                    const row_actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+                        row["has-value"] ? [
+                            {
+                                label: "Edit",
+                                value: "edit"
+                            },
+                            {
+                                label: "Delete",
+                                value: "delete"
                             }
-
-                            this.#value_table = null;
-                            this.#getValueTable();
-                        },
-                        label: "Delete"
-                    }
-                ] : [
-                    {
-                        action: async () => {
-                            if (!await this.#addValue(
-                                row.name
-                            )) {
-                                return;
+                        ] : [
+                            {
+                                label: "Add",
+                                value: "add"
                             }
+                        ]
+                    );
+                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+                        switch (e.detail.value) {
+                            case "add":
+                                if (!await this.#addValue(
+                                    row.name
+                                )) {
+                                    return;
+                                }
 
-                            this.#value_table = null;
-                            this.#getValueTable();
-                        },
-                        label: "Add"
-                    }
-                ]
-            })) ?? null,
-            async (value = null, type = null) => flux_value_format.formatValue(
-                value,
-                type
-            ),
+                                this.#value_table = null;
+                                this.#getValueTable();
+                                break;
+
+                            case "delete":
+                                if (!await this.#deleteValue(
+                                    row.name
+                                )) {
+                                    return;
+                                }
+
+                                this.#value_table = null;
+                                this.#getValueTable();
+                                break;
+
+                            case "edit":
+                                if (!await this.#editValue(
+                                    row.name
+                                )) {
+                                    return;
+                                }
+
+                                this.#value_table = null;
+                                this.#getValueTable();
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                    return row_actions_flux_button_only_button_group_element;
+                }
+
+                return flux_value_format.formatValue(
+                    value,
+                    type
+                );
+            },
+            null,
             "No values"
         ));
     }
