@@ -892,14 +892,17 @@ export class FluxFieldValueStorageUI {
                     );
                     row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
                         switch (e.detail.value) {
-                            case "delete":
+                            case "delete": {
                                 if (!await this.#deleteField(
                                     row.name
                                 )) {
                                     return;
                                 }
 
-                                this.#field_table.rows.splice(this.#field_table.rows.indexOf(row), 1);
+                                const index = this.#field_table.rows.indexOf(row);
+                                if (index !== -1) {
+                                    this.#field_table.rows.splice(index, 1);
+                                }
 
                                 await flux_table_element.deleteRow(
                                     row.name
@@ -907,6 +910,7 @@ export class FluxFieldValueStorageUI {
 
                                 this.#value_table_filter_form_element = null;
                                 this.#value_table = null;
+                            }
                                 break;
 
                             case "edit":
@@ -930,7 +934,7 @@ export class FluxFieldValueStorageUI {
                                 }
 
                                 const index = this.#field_table.rows.indexOf(row);
-                                if (index < this.#field_table.rows.length - 1) {
+                                if (index !== -1 && index < this.#field_table.rows.length - 1) {
                                     this.#field_table.rows.splice(index, 1);
                                     this.#field_table.rows.splice(index + 1, 0, row);
                                 }
