@@ -1,19 +1,19 @@
-import { FIELD_TYPE_TIME } from "./FIELD_TYPE.mjs";
-import { FORMAT_VALUE_TYPE_TIME } from "../../../flux-value-format/src/FORMAT_VALUE_TYPE.mjs";
-import { INPUT_TYPE_TIME } from "../../../flux-form/src/INPUT_TYPE.mjs";
-import { TIME_PATTERN } from "../../../flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
+import { DATE_TIME_PATTERN } from "../../../flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
+import { FIELD_TYPE_DATE_TIME } from "./FIELD_TYPE.mjs";
+import { FORMAT_VALUE_TYPE_DATE_TIME } from "../../../flux-value-format/src/FORMAT_VALUE_TYPE.mjs";
+import { INPUT_TYPE_DATETIME_LOCAL } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
+/** @typedef {import("../../../flux-value-format/src/DateTime/DateTimeValue.mjs").DateTimeValue} DateTimeValue */
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
-/** @typedef {import("../../../flux-value-format/src/Time/TimeValue.mjs").TimeValue} TimeValue */
 
 /**
  * @implements {FieldType}
  */
-export class TimeFieldType {
+export class DateTimeFieldType {
     /**
-     * @returns {TimeFieldType}
+     * @returns {DateTimeFieldType}
      */
     static new() {
         return new this();
@@ -36,14 +36,14 @@ export class TimeFieldType {
                 label: "Minimal value",
                 name: "minimal-value",
                 step: "1",
-                type: INPUT_TYPE_TIME,
+                type: INPUT_TYPE_DATETIME_LOCAL,
                 value: field?.["minimal-value"] ?? ""
             },
             {
                 label: "Maximal value",
                 name: "maximal-value",
                 step: "1",
-                type: INPUT_TYPE_TIME,
+                type: INPUT_TYPE_DATETIME_LOCAL,
                 value: field?.["maximal-value"] ?? ""
             }
         ];
@@ -70,31 +70,31 @@ export class TimeFieldType {
      * @returns {Promise<string>}
      */
     async getFormatValueType() {
-        return FORMAT_VALUE_TYPE_TIME;
+        return FORMAT_VALUE_TYPE_DATE_TIME;
     }
 
     /**
      * @returns {Promise<string>}
      */
     async getType() {
-        return FIELD_TYPE_TIME;
+        return FIELD_TYPE_DATE_TIME;
     }
 
     /**
      * @returns {Promise<string>}
      */
     async getTypeLabel() {
-        return "Time";
+        return "Date & Time";
     }
 
     /**
      * @param {Field} field
      * @param {string | null} value
-     * @returns {Promise<TimeValue>}
+     * @returns {Promise<DateTimeValue>}
      */
     async getValueAsFormat(field, value = null) {
         return {
-            time: value,
+            "date-time": value,
             "show-as-utc": true
         };
     }
@@ -122,7 +122,7 @@ export class TimeFieldType {
                 min: field["minimal-value"]
             } : null,
             step: "1",
-            type: INPUT_TYPE_TIME,
+            type: INPUT_TYPE_DATETIME_LOCAL,
             value: value ?? ""
         };
     }
@@ -172,11 +172,11 @@ export class TimeFieldType {
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
-        if (typeof field["minimal-value"] !== "string" && !TIME_PATTERN.test(field["minimal-value"])) {
+        if (typeof field["minimal-value"] !== "string" && !DATE_TIME_PATTERN.test(field["minimal-value"])) {
             return false;
         }
 
-        if (typeof field["maximal-value"] !== "string" && !TIME_PATTERN.test(field["maximal-value"])) {
+        if (typeof field["maximal-value"] !== "string" && !DATE_TIME_PATTERN.test(field["maximal-value"])) {
             return false;
         }
 
@@ -193,7 +193,7 @@ export class TimeFieldType {
             return false;
         }
 
-        if (value !== "" && !TIME_PATTERN.test(value)) {
+        if (value !== "" && !DATE_TIME_PATTERN.test(value)) {
             return false;
         }
 

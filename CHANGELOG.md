@@ -6,6 +6,14 @@ Changes:
 
 \-
 
+## v2023-06-08-1-beta
+
+Changes:
+
+- Format date/time
+- Time seconds
+- `Date & Time` field type
+
 ## v2023-06-05-1-beta
 
 Changes:

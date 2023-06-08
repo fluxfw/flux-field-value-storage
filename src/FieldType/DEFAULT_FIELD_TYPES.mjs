@@ -1,6 +1,7 @@
 import { BooleanFieldType } from "./BooleanFieldType.mjs";
 import { ColorFieldType } from "./ColorFieldType.mjs";
 import { DateFieldType } from "./DateFieldType.mjs";
+import { DateTimeFieldType } from "./DateTimeFieldType.mjs";
 import { EmailFieldType } from "./EmailFieldType.mjs";
 import { FloatFieldType } from "./FloatFieldType.mjs";
 import { IntegerFieldType } from "./IntegerFieldType.mjs";
@@ -22,6 +23,7 @@ export const DEFAULT_FIELD_TYPES = Object.freeze([
     BooleanFieldType.new(),
     ColorFieldType.new(),
     DateFieldType.new(),
+    DateTimeFieldType.new(),
     EmailFieldType.new(),
     FloatFieldType.new(),
     IntegerFieldType.new(),

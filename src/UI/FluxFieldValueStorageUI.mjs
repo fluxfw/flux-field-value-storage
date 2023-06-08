@@ -1,7 +1,8 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
-import { INPUT_TYPE_ENTRIES } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
+import { valueToTimestamp } from "./Libs/flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
+import { INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_TIME } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
 import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src/Method/METHOD.mjs";
 
 /** @typedef {import("../Field/FieldTable.mjs").FieldTable} FieldTable */
@@ -1074,12 +1075,22 @@ export class FluxFieldValueStorageUI {
                 }
 
                 if (this.#value_table_filter !== null) {
+                    const {
+                        inputs
+                    } = this.#value_table_filter_form_element;
                     this.#value_table ??= await this.#request(
                         "value/get-table",
-                        Object.fromEntries(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(value => [
+                        Object.fromEntries(await Promise.all(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(async value => [
                             value.name,
-                            value.value
-                        ]))
+                            [
+                                INPUT_TYPE_DATE,
+                                INPUT_TYPE_DATETIME_LOCAL,
+                                INPUT_TYPE_TIME
+                            ].includes(inputs.find(input => input.name === value.name)?.type ?? null) ? await valueToTimestamp(
+                                value.value,
+                                true
+                            ) : value.value
+                        ])))
                     );
                 } else {
                     this.#value_table = null;
@@ -1104,10 +1115,6 @@ export class FluxFieldValueStorageUI {
         }
 
         this.#value_element.appendChild(this.#value_table_filter_form_element);
-
-        if (error_element !== null) {
-            this.#value_element.appendChild(error_element);
-        }
 
         const {
             FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
@@ -1156,19 +1163,27 @@ export class FluxFieldValueStorageUI {
         });
         this.#value_element.appendChild(actions_flux_button_only_button_group_element);
 
+        if (this.#value_table === null) {
+            if (error_element !== null) {
+                this.#value_element.appendChild(error_element);
+            }
+            return;
+        }
+
         const flux_value_format = await this.#getFluxValueFormat();
 
         this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
-            this.#value_table?.columns?.concat([
+            [
+                ...this.#value_table.columns,
                 {
                     key: "actions",
                     label: "Actions",
                     type: "actions",
                     width: "1px"
                 }
-            ]) ?? null,
+            ],
             "name",
-            this.#value_table?.rows ?? null,
+            this.#value_table.rows,
             async (value = null, type = null, name = null) => {
                 const row = this.#value_table.rows.find(_row => _row.name === name) ?? null;
 

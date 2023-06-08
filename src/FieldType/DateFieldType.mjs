@@ -1,11 +1,12 @@
+import { DATE_PATTERN } from "../../../flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
 import { FIELD_TYPE_DATE } from "./FIELD_TYPE.mjs";
+import { FORMAT_VALUE_TYPE_DATE } from "../../../flux-value-format/src/FORMAT_VALUE_TYPE.mjs";
 import { INPUT_TYPE_DATE } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
+/** @typedef {import("../../../flux-value-format/src/Date/DateValue.mjs").DateValue} DateValue */
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * @implements {FieldType}
@@ -64,10 +65,10 @@ export class DateFieldType {
     }
 
     /**
-     * @returns {Promise<null>}
+     * @returns {Promise<string>}
      */
     async getFormatValueType() {
-        return null;
+        return FORMAT_VALUE_TYPE_DATE;
     }
 
     /**
@@ -87,10 +88,13 @@ export class DateFieldType {
     /**
      * @param {Field} field
      * @param {string | null} value
-     * @returns {Promise<string | null>}
+     * @returns {Promise<DateValue>}
      */
     async getValueAsFormat(field, value = null) {
-        return value;
+        return {
+            date: value,
+            "show-as-utc": true
+        };
     }
 
     /**

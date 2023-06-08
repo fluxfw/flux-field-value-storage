@@ -4,6 +4,8 @@ export const FIELD_TYPE_COLOR = "color";
 
 export const FIELD_TYPE_DATE = "date";
 
+export const FIELD_TYPE_DATE_TIME = "date-time";
+
 export const FIELD_TYPE_EMAIL = "email";
 
 export const FIELD_TYPE_FLOAT = "float";
