@@ -1,7 +1,7 @@
 import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "../../../flux-form/src/ADDITIONAL_VALIDATION_TYPE.mjs";
 import { FIELD_TYPE_REGULAR_EXPRESSION } from "./FIELD_TYPE.mjs";
 import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
-import { validateRegularExpressionValue } from "../../../flux-form/src/DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
+import { validateRegularExpressionValue, valueToRegExp } from "../../../flux-form/src/DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -192,7 +192,9 @@ export class RegularExpressionFieldType {
             return false;
         }
 
-        if (value !== "" && !new RegExp(field["regular-expression"]).test(value)) {
+        if (value !== "" && !(await valueToRegExp(
+            field["regular-expression"]
+        )).test(value)) {
             return false;
         }
 
