@@ -95,6 +95,19 @@ export class PasswordFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            ...field.placeholder !== "" ? {
+                placeholder: field.placeholder
+            } : null,
+            type: INPUT_TYPE_PASSWORD
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {string | null} value
      * @returns {Promise<Input>}
      */
@@ -106,6 +119,15 @@ export class PasswordFieldType {
             type: INPUT_TYPE_PASSWORD,
             value: value ?? ""
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<string | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return value;
     }
 
     /**
@@ -148,10 +170,41 @@ export class PasswordFieldType {
 
     /**
      * @param {Field} field
+     * @param {string | null} value
+     * @param {string | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value?.toLowerCase()?.includes(filter_value.toLowerCase()) ?? false;
+    }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
         if (typeof field.placeholder !== "string") {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (typeof value !== "string" || value === "") {
             return false;
         }
 

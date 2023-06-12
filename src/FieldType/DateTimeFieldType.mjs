@@ -110,6 +110,23 @@ export class DateTimeFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            ...field["maximal-value"] !== "" ? {
+                max: field["maximal-value"]
+            } : null,
+            ...field["minimal-value"] !== "" ? {
+                min: field["minimal-value"]
+            } : null,
+            step: "1",
+            type: INPUT_TYPE_DATETIME_LOCAL
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {string | null} value
      * @returns {Promise<Input>}
      */
@@ -125,6 +142,15 @@ export class DateTimeFieldType {
             type: INPUT_TYPE_DATETIME_LOCAL,
             value: value ?? ""
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<string | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return value;
     }
 
     /**
@@ -169,6 +195,20 @@ export class DateTimeFieldType {
 
     /**
      * @param {Field} field
+     * @param {string | null} value
+     * @param {string | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value === filter_value;
+    }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
@@ -177,6 +217,35 @@ export class DateTimeFieldType {
         }
 
         if (typeof field["maximal-value"] !== "string" && !DATE_TIME_PATTERN.test(field["maximal-value"])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (typeof value !== "string" || value === "") {
+            return false;
+        }
+
+        if (!DATE_TIME_PATTERN.test(value)) {
+            return false;
+        }
+
+        if (field["minimal-value"] !== "" && value < field["minimal-value"]) {
+            return false;
+        }
+
+        if (field["maximal-value"] !== "" && value > field["maximal-value"]) {
             return false;
         }
 

@@ -1,4 +1,5 @@
 import { FIELD_NAME_PATTERN } from "./FIELD_NAME.mjs";
+import { VALUE_NAME_PATTERN } from "../Value/VALUE_NAME.mjs";
 import { FIELD_POSITION_MOVE, FIELD_POSITION_START, FIELD_POSITION_VALUE } from "./FIELD_POSITION.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
@@ -341,6 +342,49 @@ export class FieldService {
         }
 
         return values;
+    }
+
+    /**
+     * @returns {Promise<Input[]>}
+     */
+    async getValueFilterInputs() {
+        const inputs = [
+            {
+                label: "Name",
+                name: "name",
+                pattern: VALUE_NAME_PATTERN.source,
+                subtitle: "Only letters, digits, dashes, underscores or dots",
+                type: INPUT_TYPE_TEXT
+            },
+            {
+                label: "Has value",
+                name: "has-value",
+                options: [
+                    {
+                        label: "No",
+                        value: "false"
+                    },
+                    {
+                        label: "Yes",
+                        value: "true"
+                    }
+                ],
+                type: INPUT_TYPE_SELECT
+            }
+        ];
+
+        for (const field of await this.getFields()) {
+            inputs.push({
+                label: field.label,
+                name: `field-${field.name}`,
+                subtitle: field.subtitle,
+                ...await this.#field_type_service.getValueFilterInput(
+                    field
+                )
+            });
+        }
+
+        return inputs;
     }
 
     /**

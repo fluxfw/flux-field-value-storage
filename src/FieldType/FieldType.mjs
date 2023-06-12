@@ -56,11 +56,26 @@ export class FieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input | null>}
+     * @abstract
+     */
+    getValueFilterInput(field) { }
+
+    /**
+     * @param {Field} field
      * @param {*} value
      * @returns {Promise<Input | null>}
      * @abstract
      */
     getValueInput(field, value) { }
+
+    /**
+     * @param {Field} field
+     * @param {*} value
+     * @returns {Promise<*>}
+     * @abstract
+     */
+    mapFilterValue(field, value) { }
 
     /**
      * @param {{[key: string]: *}} field
@@ -94,10 +109,27 @@ export class FieldType {
 
     /**
      * @param {Field} field
+     * @param {*} value
+     * @param {*} filter_value
+     * @returns {Promise<boolean>}
+     * @abstract
+     */
+    matchFilterValue(field, value, filter_value) { }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      * @abstract
      */
     validateField(field) { }
+
+    /**
+     * @param {Field} field
+     * @param {*} value
+     * @returns {Promise<boolean>}
+     * @abstract
+     */
+    validateFilterValue(field, value) { }
 
     /**
      * @param {Field} field

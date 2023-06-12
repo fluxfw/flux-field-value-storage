@@ -1,5 +1,5 @@
+import { INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 import { VALUE_NAME_PATTERN } from "./VALUE_NAME.mjs";
-import { INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("mongodb").Collection} Collection */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
@@ -129,35 +129,6 @@ export class ValueService {
 
             return values;
         }, {}));
-    }
-
-    /**
-     * @returns {Promise<Input[]>}
-     */
-    async getValueTableFilterInputs() {
-        return [
-            {
-                label: "Name",
-                name: "name",
-                pattern: VALUE_NAME_PATTERN.source,
-                type: INPUT_TYPE_TEXT
-            },
-            {
-                label: "Has value",
-                name: "has-value",
-                options: [
-                    {
-                        label: "No",
-                        value: "false"
-                    },
-                    {
-                        label: "Yes",
-                        value: "true"
-                    }
-                ],
-                type: INPUT_TYPE_SELECT
-            }
-        ];
     }
 
     /**

@@ -81,6 +81,16 @@ export class ColorFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            type: INPUT_TYPE_COLOR
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {string | null} value
      * @returns {Promise<Input>}
      */
@@ -89,6 +99,15 @@ export class ColorFieldType {
             type: INPUT_TYPE_COLOR,
             value: value ?? ""
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<string | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return value;
     }
 
     /**
@@ -124,9 +143,44 @@ export class ColorFieldType {
     }
 
     /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @param {string | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value === filter_value;
+    }
+
+    /**
      * @returns {Promise<boolean>}
      */
     async validateField() {
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (typeof value !== "string" || value === "") {
+            return false;
+        }
+
+        if (!COLOR_PATTERN.test(value)) {
+            return false;
+        }
+
         return true;
     }
 

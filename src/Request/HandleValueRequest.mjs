@@ -77,6 +77,12 @@ export class HandleValueRequest {
             );
         }
 
+        if (request.url_path_parts.length === 3 && request.url_path_parts[2] === "get-filter-inputs") {
+            return this.#getValueFilterInputs(
+                request
+            );
+        }
+
         if ((request.url_path_parts.length === 3 || request.url_path_parts.length === 4) && request.url_path_parts[2] === "get-inputs") {
             return this.#getValueInputs(
                 request
@@ -91,12 +97,6 @@ export class HandleValueRequest {
 
         if (request.url_path_parts.length === 3 && request.url_path_parts[2] === "get-table") {
             return this.#getValueTable(
-                request
-            );
-        }
-
-        if (request.url_path_parts.length === 3 && request.url_path_parts[2] === "get-table-filter-inputs") {
-            return this.#getValueTableFilterInputs(
                 request
             );
         }
@@ -291,6 +291,28 @@ export class HandleValueRequest {
      * @param {HttpServerRequest} request
      * @returns {Promise<HttpServerResponse>}
      */
+    async #getValueFilterInputs(request) {
+        const response = await this.#flux_http_api.validateMethods(
+            request,
+            [
+                METHOD_GET,
+                METHOD_HEAD
+            ]
+        );
+
+        if (response !== null) {
+            return response;
+        }
+
+        return HttpServerResponse.json(
+            await this.#flux_field_value_storage.getValueFilterInputs()
+        );
+    }
+
+    /**
+     * @param {HttpServerRequest} request
+     * @returns {Promise<HttpServerResponse>}
+     */
     async #getValueInputs(request) {
         const response = await this.#flux_http_api.validateMethods(
             request,
@@ -390,28 +412,6 @@ export class HandleValueRequest {
 
         return HttpServerResponse.json(
             table
-        );
-    }
-
-    /**
-     * @param {HttpServerRequest} request
-     * @returns {Promise<HttpServerResponse>}
-     */
-    async #getValueTableFilterInputs(request) {
-        const response = await this.#flux_http_api.validateMethods(
-            request,
-            [
-                METHOD_GET,
-                METHOD_HEAD
-            ]
-        );
-
-        if (response !== null) {
-            return response;
-        }
-
-        return HttpServerResponse.json(
-            await this.#flux_field_value_storage.getValueTableFilterInputs()
         );
     }
 

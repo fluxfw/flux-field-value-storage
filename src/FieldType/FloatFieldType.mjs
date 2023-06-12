@@ -124,6 +124,23 @@ export class FloatFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            ...field["maximal-value"] !== null ? {
+                max: `${field["maximal-value"]}`
+            } : null,
+            ...field["minimal-value"] !== null ? {
+                min: `${field["minimal-value"]}`
+            } : null,
+            step: `${field["step-value"]}`,
+            type: INPUT_TYPE_NUMBER
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {number | null} value
      * @returns {Promise<Input>}
      */
@@ -139,6 +156,15 @@ export class FloatFieldType {
             type: INPUT_TYPE_NUMBER,
             value
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {number | null} value
+     * @returns {Promise<number | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value) ? parseFloat(value) : value;
     }
 
     /**
@@ -185,6 +211,20 @@ export class FloatFieldType {
 
     /**
      * @param {Field} field
+     * @param {number | null} value
+     * @param {number | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value === filter_value;
+    }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
@@ -197,6 +237,31 @@ export class FloatFieldType {
         }
 
         if (!Number.isFinite(field["step-value"]) || field["step-value"] < MIN_STEP_VALUE || field["step-value"] > MAX_STEP_VALUE) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {number | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (!Number.isFinite(value)) {
+            return false;
+        }
+
+        if (field["minimal-value"] !== null && value < field["minimal-value"]) {
+            return false;
+        }
+
+        if (field["maximal-value"] !== null && value > field["maximal-value"]) {
             return false;
         }
 

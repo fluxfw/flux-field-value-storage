@@ -12,6 +12,7 @@ import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src
 /** @typedef {import("./Libs/flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs").FluxPwaApi} FluxPwaApi */
 /** @typedef {import("./Libs/flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
+/** @typedef {import("./Libs/flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Libs/flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
@@ -58,6 +59,10 @@ export class FluxFieldValueStorageUI {
      * @type {InputValue[] | null}
      */
     #value_table_filter = null;
+    /**
+     * @type {Input[] | null}
+     */
+    #value_table_filter_inputs = null;
     /**
      * @type {FluxFormElement | null}
      */
@@ -1062,31 +1067,34 @@ export class FluxFieldValueStorageUI {
 
             try {
                 if (this.#value_table_filter_form_element === null) {
-                    const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
-                        await this.#request(
-                            "value/get-table-filter-inputs"
-                        )
+                    this.#value_table_filter_inputs = [];
+
+                    const value_table_filter_inputs = await this.#request(
+                        "value/get-filter-inputs"
                     );
+
+                    const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+                        value_table_filter_inputs
+                    );
+
                     if (this.#value_table_filter !== null) {
                         table_filter_form_element.values = this.#value_table_filter;
                     }
 
+                    this.#value_table_filter_inputs = value_table_filter_inputs;
                     this.#value_table_filter_form_element = table_filter_form_element;
                 }
 
                 if (this.#value_table_filter !== null) {
-                    const {
-                        inputs
-                    } = this.#value_table_filter_form_element;
                     this.#value_table ??= await this.#request(
                         "value/get-table",
                         Object.fromEntries(await Promise.all(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(async value => [
                             value.name,
-                            [
+                            !value.name.startsWith("field-") && [
                                 INPUT_TYPE_DATE,
                                 INPUT_TYPE_DATETIME_LOCAL,
                                 INPUT_TYPE_TIME
-                            ].includes(inputs.find(input => input.name === value.name)?.type ?? null) ? await valueToTimestamp(
+                            ].includes(this.#value_table_filter_inputs.find(input => input.name === value.name)?.type ?? null) ? await valueToTimestamp(
                                 value.value,
                                 true
                             ) : value.value

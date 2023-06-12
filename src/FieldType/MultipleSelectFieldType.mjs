@@ -5,6 +5,8 @@ import { INPUT_TYPE_ENTRIES, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../..
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
+const VALUE_PATTERN = /^[^,]+$/;
+
 /**
  * @implements {FieldType}
  */
@@ -34,7 +36,9 @@ export class MultipleSelectFieldType {
                     {
                         label: "Value",
                         name: "value",
+                        pattern: VALUE_PATTERN.source,
                         required: true,
+                        subtitle: "Commas can't be used",
                         type: INPUT_TYPE_TEXT
                     },
                     {
@@ -116,6 +120,21 @@ export class MultipleSelectFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            multiple: true,
+            options: field.options.map(option => ({
+                label: option.label,
+                value: option.value
+            })),
+            type: INPUT_TYPE_SELECT
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {string[] | null} value
      * @returns {Promise<Input>}
      */
@@ -129,6 +148,15 @@ export class MultipleSelectFieldType {
             type: INPUT_TYPE_SELECT,
             value: value ?? []
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string[] | null} value
+     * @returns {Promise<string[] | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return typeof value === "string" ? value.split(",") : value;
     }
 
     /**
@@ -177,10 +205,41 @@ export class MultipleSelectFieldType {
 
     /**
      * @param {Field} field
+     * @param {string[] | null} value
+     * @param {string[] | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value?.some(_value => filter_value.includes(_value)) ?? false;
+    }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
-        if (!Array.isArray(field.options) || field.options.length === 0 || field.options.some(option => option === null || typeof option !== "object" || typeof option.value !== "string" || option.value === "" || typeof option.label !== "string" || option.label === "") || new Set(field.options.map(option => option.value)).size !== field.options.length) {
+        if (!Array.isArray(field.options) || field.options.length === 0 || field.options.some(option => option === null || typeof option !== "object" || typeof option.value !== "string" || option.value === "" || !VALUE_PATTERN.test(option.value) || typeof option.label !== "string" || option.label === "") || new Set(field.options.map(option => option.value)).size !== field.options.length) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {string[] | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (!Array.isArray(value) || value.length === 0 || value.some(_value => typeof _value !== "string" || _value === "" || !VALUE_PATTERN.test(_value) || !field.options.some(option => option.value === _value)) || new Set(value).size !== value.length) {
             return false;
         }
 
@@ -193,7 +252,7 @@ export class MultipleSelectFieldType {
      * @returns {Promise<boolean>}
      */
     async validateValue(field, value = null) {
-        if (!Array.isArray(value) || value.some(_value => typeof _value !== "string" || _value === "" || !field.options.some(option => option.value === _value)) || new Set(value).size !== value.length) {
+        if (!Array.isArray(value) || value.some(_value => typeof _value !== "string" || _value === "" || !VALUE_PATTERN.test(_value) || !field.options.some(option => option.value === _value)) || new Set(value).size !== value.length) {
             return false;
         }
 

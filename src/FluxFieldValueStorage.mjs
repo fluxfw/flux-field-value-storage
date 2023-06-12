@@ -275,6 +275,13 @@ export class FluxFieldValueStorage {
     }
 
     /**
+     * @returns {Promise<Input[]>}
+     */
+    async getValueFilterInputs() {
+        return (await this.#getFieldService()).getValueFilterInputs();
+    }
+
+    /**
      * @param {string | null} name
      * @returns {Promise<Input[] | null>}
      */
@@ -345,14 +352,49 @@ export class FluxFieldValueStorage {
         for (const value of values) {
             const field_values = [];
 
+            let fields_filter = true;
+
             for (const field of fields) {
+                const mapped_value = await field_type_service.mapGetValue(
+                    field,
+                    value.values.find(field_value => field_value.id === field.id)?.value ?? null
+                );
+
+                const filter_value = _filter[`field-${field.name}`] ?? null;
+
+                if (filter_value !== null) {
+                    const mapped_filter_value = await field_type_service.mapFilterValue(
+                        field,
+                        filter_value
+                    );
+
+                    if (mapped_filter_value !== null) {
+                        if (!await field_type_service.validateFilterValue(
+                            field,
+                            mapped_filter_value
+                        )) {
+                            return null;
+                        }
+
+                        if (!await field_type_service.matchFilterValue(
+                            field,
+                            mapped_value,
+                            mapped_filter_value
+                        )) {
+                            fields_filter = false;
+                            break;
+                        }
+                    }
+                }
+
                 field_values.push({
                     name: field.name,
-                    value: await field_type_service.mapGetValue(
-                        field,
-                        value.values.find(field_value => field_value.id === field.id)?.value ?? null
-                    )
+                    value: mapped_value
                 });
+            }
+
+            if (!fields_filter) {
+                continue;
             }
 
             _values.push({
@@ -377,22 +419,9 @@ export class FluxFieldValueStorage {
             return null;
         }
 
-        const table = await (await this.#getFieldService()).getValueTable(
+        return (await this.#getFieldService()).getValueTable(
             values
         );
-
-        if (filter?.["has-value"] === false || filter?.["has-value"] === "false") {
-            table["show-add-new"] = false;
-        }
-
-        return table;
-    }
-
-    /**
-     * @returns {Promise<Input[]>}
-     */
-    async getValueTableFilterInputs() {
-        return (await this.#getValueService()).getValueTableFilterInputs();
     }
 
     /**

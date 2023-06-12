@@ -106,6 +106,23 @@ export class IntegerFieldType {
 
     /**
      * @param {Field} field
+     * @returns {Promise<Input>}
+     */
+    async getValueFilterInput(field) {
+        return {
+            ...field["maximal-value"] !== null ? {
+                max: `${field["maximal-value"]}`
+            } : null,
+            ...field["minimal-value"] !== null ? {
+                min: `${field["minimal-value"]}`
+            } : null,
+            step: `${STEP_VALUE}`,
+            type: INPUT_TYPE_NUMBER
+        };
+    }
+
+    /**
+     * @param {Field} field
      * @param {number | null} value
      * @returns {Promise<Input>}
      */
@@ -121,6 +138,15 @@ export class IntegerFieldType {
             type: INPUT_TYPE_NUMBER,
             value
         };
+    }
+
+    /**
+     * @param {Field} field
+     * @param {number | null} value
+     * @returns {Promise<number | null>}
+     */
+    async mapFilterValue(field, value = null) {
+        return typeof value === "string" && /^-?\d+$/.test(value) ? parseFloat(value) : value;
     }
 
     /**
@@ -165,6 +191,20 @@ export class IntegerFieldType {
 
     /**
      * @param {Field} field
+     * @param {number | null} value
+     * @param {number | null} filter_value
+     * @returns {Promise<boolean>}
+     */
+    async matchFilterValue(field, value = null, filter_value = null) {
+        if (filter_value === null) {
+            return true;
+        }
+
+        return value === filter_value;
+    }
+
+    /**
+     * @param {Field} field
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
@@ -173,6 +213,31 @@ export class IntegerFieldType {
         }
 
         if (field["maximal-value"] !== null && !Number.isInteger(field["maximal-value"])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Field} field
+     * @param {number | null} value
+     * @returns {Promise<boolean>}
+     */
+    async validateFilterValue(field, value = null) {
+        if (value === null) {
+            return true;
+        }
+
+        if (!Number.isInteger(value)) {
+            return false;
+        }
+
+        if (field["minimal-value"] !== null && value < field["minimal-value"]) {
+            return false;
+        }
+
+        if (field["maximal-value"] !== null && value > field["maximal-value"]) {
             return false;
         }
 
