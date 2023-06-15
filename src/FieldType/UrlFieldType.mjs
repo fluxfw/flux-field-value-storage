@@ -6,6 +6,8 @@ import { INPUT_TYPE_TEXT, INPUT_TYPE_URL } from "../../../flux-form/src/INPUT_TY
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
+const FILTER_ATTRIBUTE_CONTAINS = "contains";
+
 /**
  * @implements {FieldType}
  */
@@ -93,15 +95,26 @@ export class UrlFieldType {
 
     /**
      * @param {Field} field
-     * @returns {Promise<Input>}
+     * @returns {Promise<Input[]>}
      */
-    async getValueFilterInput(field) {
-        return {
-            ...field.placeholder !== "" ? {
-                placeholder: field.placeholder
-            } : null,
-            type: INPUT_TYPE_TEXT
-        };
+    async getValueFilterInputs(field) {
+        return [
+            {
+                ...field.placeholder !== "" ? {
+                    placeholder: field.placeholder
+                } : null,
+                type: INPUT_TYPE_URL
+            },
+            {
+                label: `${field.label} contains`,
+                name: FILTER_ATTRIBUTE_CONTAINS,
+                ...field.placeholder !== "" ? {
+                    placeholder: field.placeholder
+                } : null,
+                required: true,
+                type: INPUT_TYPE_TEXT
+            }
+        ];
     }
 
     /**
@@ -170,14 +183,17 @@ export class UrlFieldType {
      * @param {Field} field
      * @param {string | null} value
      * @param {string | null} filter_value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
+    async matchFilterValue(field, value = null, filter_value = null, attribute = null) {
+        switch (attribute) {
+            case FILTER_ATTRIBUTE_CONTAINS:
+                return (value ?? "").toLowerCase().includes((filter_value ?? "").toLowerCase());
 
-        return value?.toLowerCase()?.includes(filter_value.toLowerCase()) ?? false;
+            default:
+                return (value ?? "") === (filter_value ?? "");
+        }
     }
 
     /**
@@ -195,14 +211,23 @@ export class UrlFieldType {
     /**
      * @param {Field} field
      * @param {string | null} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
+    async validateFilterValue(field, value = null, attribute = null) {
+        if (attribute !== null && attribute !== FILTER_ATTRIBUTE_CONTAINS) {
+            return false;
         }
 
-        if (typeof value !== "string" || value === "") {
+        if (typeof value !== "string") {
+            return false;
+        }
+
+        if (attribute === null && value !== "" && !URL.canParse(value)) {
+            return false;
+        }
+
+        if (attribute !== null && value === "") {
             return false;
         }
 

@@ -206,9 +206,9 @@ export class FieldTypeService {
 
     /**
      * @param {Field} field
-     * @returns {Promise<Input | null>}
+     * @returns {Promise<Input[] | null>}
      */
-    async getValueFilterInput(field) {
+    async getValueFilterInputs(field) {
         const field_type = await this.getFieldType(
             field.type
         );
@@ -217,7 +217,7 @@ export class FieldTypeService {
             return null;
         }
 
-        return field_type.getValueFilterInput(
+        return field_type.getValueFilterInputs(
             field
         );
     }
@@ -245,13 +245,10 @@ export class FieldTypeService {
     /**
      * @param {Field} field
      * @param {*} value
+     * @param {string | null} attribute
      * @returns {Promise<*>}
      */
-    async mapFilterValue(field, value = null) {
-        if (value === null) {
-            return null;
-        }
-
+    async mapFilterValue(field, value = null, attribute = null) {
         const field_type = await this.getFieldType(
             field.type
         );
@@ -262,7 +259,8 @@ export class FieldTypeService {
 
         return field_type.mapFilterValue(
             field,
-            value
+            value,
+            attribute
         );
     }
 
@@ -346,17 +344,10 @@ export class FieldTypeService {
      * @param {Field} field
      * @param {*} value
      * @param {*} filter_value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
-
-        if (value === null) {
-            return false;
-        }
-
+    async matchFilterValue(field, value = null, filter_value = null, attribute = null) {
         const field_type = await this.getFieldType(
             field.type
         );
@@ -368,7 +359,8 @@ export class FieldTypeService {
         return field_type.matchFilterValue(
             field,
             value,
-            filter_value
+            filter_value,
+            attribute
         );
     }
 
@@ -393,13 +385,10 @@ export class FieldTypeService {
     /**
      * @param {Field} field
      * @param {*} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
-        }
-
+    async validateFilterValue(field, value = null, attribute = null) {
         const field_type = await this.getFieldType(
             field.type
         );
@@ -410,7 +399,8 @@ export class FieldTypeService {
 
         return field_type.validateFilterValue(
             field,
-            value
+            value,
+            attribute
         );
     }
 
@@ -420,10 +410,6 @@ export class FieldTypeService {
      * @returns {Promise<boolean>}
      */
     async validateValue(field, value = null) {
-        if (field.required && value === null) {
-            return false;
-        }
-
         const field_type = await this.getFieldType(
             field.type
         );

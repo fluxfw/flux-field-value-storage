@@ -8,6 +8,14 @@ import { INPUT_TYPE_DATE } from "../../../flux-form/src/INPUT_TYPE.mjs";
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
+const FILTER_ATTRIBUTE_AFTER = "after";
+
+const FILTER_ATTRIBUTE_BEFORE = "before";
+
+const FILTER_ATTRIBUTE_FROM = "from";
+
+const FILTER_ATTRIBUTE_TO = "to";
+
 /**
  * @implements {FieldType}
  */
@@ -108,18 +116,44 @@ export class DateFieldType {
 
     /**
      * @param {Field} field
-     * @returns {Promise<Input>}
+     * @returns {Promise<Input[]>}
      */
-    async getValueFilterInput(field) {
-        return {
-            ...field["maximal-value"] !== "" ? {
-                max: field["maximal-value"]
-            } : null,
-            ...field["minimal-value"] !== "" ? {
-                min: field["minimal-value"]
-            } : null,
-            type: INPUT_TYPE_DATE
-        };
+    async getValueFilterInputs(field) {
+        return [
+            {
+                ...field["maximal-value"] !== "" ? {
+                    max: field["maximal-value"]
+                } : null,
+                ...field["minimal-value"] !== "" ? {
+                    min: field["minimal-value"]
+                } : null,
+                type: INPUT_TYPE_DATE
+            },
+            {
+                label: `${field.label} from`,
+                ...field["maximal-value"] !== "" ? {
+                    max: field["maximal-value"]
+                } : null,
+                ...field["minimal-value"] !== "" ? {
+                    min: field["minimal-value"]
+                } : null,
+                name: FILTER_ATTRIBUTE_FROM,
+                required: true,
+                type: INPUT_TYPE_DATE
+            },
+            {
+                label: `${field.label} to`,
+                ...field["maximal-value"] !== "" ? {
+                    max: field["maximal-value"]
+                } : null,
+                ...field["minimal-value"] !== "" ? {
+                    min: field["minimal-value"]
+                } : null,
+                name: FILTER_ATTRIBUTE_TO,
+                required: true,
+                type: INPUT_TYPE_DATE
+            }
+        ];
     }
 
     /**
@@ -193,14 +227,26 @@ export class DateFieldType {
      * @param {Field} field
      * @param {string | null} value
      * @param {string | null} filter_value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
+    async matchFilterValue(field, value = null, filter_value = null, attribute = null) {
+        switch (attribute) {
+            case FILTER_ATTRIBUTE_AFTER:
+                return (value ?? "") > (filter_value ?? "");
 
-        return value === filter_value;
+            case FILTER_ATTRIBUTE_BEFORE:
+                return (value ?? "") < (filter_value ?? "");
+
+            case FILTER_ATTRIBUTE_FROM:
+                return (value ?? "") >= (filter_value ?? "");
+
+            case FILTER_ATTRIBUTE_TO:
+                return (value ?? "") <= (filter_value ?? "");
+
+            default:
+                return (value ?? "") === (filter_value ?? "");
+        }
     }
 
     /**
@@ -222,26 +268,36 @@ export class DateFieldType {
     /**
      * @param {Field} field
      * @param {string | null} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
-        }
-
-        if (typeof value !== "string" || value === "") {
+    async validateFilterValue(field, value = null, attribute = null) {
+        if (attribute !== null && ![
+            FILTER_ATTRIBUTE_AFTER,
+            FILTER_ATTRIBUTE_BEFORE,
+            FILTER_ATTRIBUTE_FROM,
+            FILTER_ATTRIBUTE_TO
+        ].includes(attribute)) {
             return false;
         }
 
-        if (!DATE_PATTERN.test(value)) {
+        if (typeof value !== "string") {
             return false;
         }
 
-        if (field["minimal-value"] !== "" && value < field["minimal-value"]) {
+        if (value !== "" && !DATE_PATTERN.test(value)) {
             return false;
         }
 
-        if (field["maximal-value"] !== "" && value > field["maximal-value"]) {
+        if (attribute !== null && value === "") {
+            return false;
+        }
+
+        if (value !== "" && field["minimal-value"] !== "" && value < field["minimal-value"]) {
+            return false;
+        }
+
+        if (value !== "" && field["maximal-value"] !== "" && value > field["maximal-value"]) {
             return false;
         }
 

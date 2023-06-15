@@ -1,18 +1,22 @@
-import { FIELD_TYPE_INTEGER } from "./FIELD_TYPE.mjs";
+import { FIELD_TYPE_NUMBER } from "./FIELD_TYPE.mjs";
 import { INPUT_TYPE_NUMBER } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
 /** @typedef {import("../../../flux-form/src/Input.mjs").Input} Input */
 
-const STEP_VALUE = 1;
+const FILTER_ATTRIBUTE_FROM = "from";
+
+const FILTER_ATTRIBUTE_TO = "to";
+
+const STEP_VALUE = 0.000001;
 
 /**
  * @implements {FieldType}
  */
-export class IntegerFieldType {
+export class NumberFieldType {
     /**
-     * @returns {IntegerFieldType}
+     * @returns {NumberFieldType}
      */
     static new() {
         return new this();
@@ -44,6 +48,14 @@ export class IntegerFieldType {
                 step: `${STEP_VALUE}`,
                 type: INPUT_TYPE_NUMBER,
                 value: field?.["maximal-value"] ?? null
+            },
+            {
+                label: "Step value",
+                min: `${STEP_VALUE}`,
+                name: "step-value",
+                step: `${STEP_VALUE}`,
+                type: INPUT_TYPE_NUMBER,
+                value: field?.["step-value"] ?? null
             }
         ];
     }
@@ -61,6 +73,10 @@ export class IntegerFieldType {
             [
                 "Maximal value",
                 `${field["maximal-value"] ?? ""}`
+            ],
+            [
+                "Step value",
+                `${field["step-value"] ?? ""}`
             ]
         ];
     }
@@ -76,14 +92,14 @@ export class IntegerFieldType {
      * @returns {Promise<string>}
      */
     async getType() {
-        return FIELD_TYPE_INTEGER;
+        return FIELD_TYPE_NUMBER;
     }
 
     /**
      * @returns {Promise<string>}
      */
     async getTypeLabel() {
-        return "Integer";
+        return "Number";
     }
 
     /**
@@ -106,19 +122,47 @@ export class IntegerFieldType {
 
     /**
      * @param {Field} field
-     * @returns {Promise<Input>}
+     * @returns {Promise<Input[]>}
      */
-    async getValueFilterInput(field) {
-        return {
-            ...field["maximal-value"] !== null ? {
-                max: `${field["maximal-value"]}`
-            } : null,
-            ...field["minimal-value"] !== null ? {
-                min: `${field["minimal-value"]}`
-            } : null,
-            step: `${STEP_VALUE}`,
-            type: INPUT_TYPE_NUMBER
-        };
+    async getValueFilterInputs(field) {
+        return [
+            {
+                ...field["maximal-value"] !== null ? {
+                    max: `${field["maximal-value"]}`
+                } : null,
+                ...field["minimal-value"] !== null ? {
+                    min: `${field["minimal-value"]}`
+                } : null,
+                step: `${field["step-value"] ?? STEP_VALUE}`,
+                type: INPUT_TYPE_NUMBER
+            },
+            {
+                label: `${field.label} from`,
+                ...field["maximal-value"] !== null ? {
+                    max: `${field["maximal-value"]}`
+                } : null,
+                ...field["minimal-value"] !== null ? {
+                    min: `${field["minimal-value"]}`
+                } : null,
+                name: FILTER_ATTRIBUTE_FROM,
+                required: true,
+                step: `${field["step-value"] ?? STEP_VALUE}`,
+                type: INPUT_TYPE_NUMBER
+            },
+            {
+                label: `${field.label} to`,
+                ...field["maximal-value"] !== null ? {
+                    max: `${field["maximal-value"]}`
+                } : null,
+                ...field["minimal-value"] !== null ? {
+                    min: `${field["minimal-value"]}`
+                } : null,
+                name: FILTER_ATTRIBUTE_TO,
+                required: true,
+                step: `${field["step-value"] ?? STEP_VALUE}`,
+                type: INPUT_TYPE_NUMBER
+            }
+        ];
     }
 
     /**
@@ -134,7 +178,7 @@ export class IntegerFieldType {
             ...field["minimal-value"] !== null ? {
                 min: `${field["minimal-value"]}`
             } : null,
-            step: `${STEP_VALUE}`,
+            step: `${field["step-value"] ?? STEP_VALUE}`,
             type: INPUT_TYPE_NUMBER,
             value
         };
@@ -146,7 +190,7 @@ export class IntegerFieldType {
      * @returns {Promise<number | null>}
      */
     async mapFilterValue(field, value = null) {
-        return typeof value === "string" && /^-?\d+$/.test(value) ? parseFloat(value) : value;
+        return typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value) ? parseFloat(value) : value === "null" ? null : value;
     }
 
     /**
@@ -156,7 +200,8 @@ export class IntegerFieldType {
     async mapGetField(field) {
         return {
             "minimal-value": field["minimal-value"],
-            "maximal-value": field["maximal-value"]
+            "maximal-value": field["maximal-value"],
+            "step-value": field["step-value"]
         };
     }
 
@@ -176,7 +221,8 @@ export class IntegerFieldType {
     async mapStoreField(field) {
         return {
             "minimal-value": field["minimal-value"],
-            "maximal-value": field["maximal-value"]
+            "maximal-value": field["maximal-value"],
+            "step-value": field["step-value"]
         };
     }
 
@@ -193,14 +239,20 @@ export class IntegerFieldType {
      * @param {Field} field
      * @param {number | null} value
      * @param {number | null} filter_value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
+    async matchFilterValue(field, value = null, filter_value = null, attribute = null) {
+        switch (attribute) {
+            case FILTER_ATTRIBUTE_FROM:
+                return value >= filter_value;
 
-        return value === filter_value;
+            case FILTER_ATTRIBUTE_TO:
+                return value <= filter_value;
+
+            default:
+                return value === filter_value;
+        }
     }
 
     /**
@@ -208,11 +260,15 @@ export class IntegerFieldType {
      * @returns {Promise<boolean>}
      */
     async validateField(field) {
-        if (field["minimal-value"] !== null && !Number.isInteger(field["minimal-value"])) {
+        if (field["minimal-value"] !== null && !Number.isFinite(field["minimal-value"])) {
             return false;
         }
 
-        if (field["maximal-value"] !== null && !Number.isInteger(field["maximal-value"])) {
+        if (field["maximal-value"] !== null && !Number.isFinite(field["maximal-value"])) {
+            return false;
+        }
+
+        if (field["step-value"] !== null && (!Number.isFinite(field["step-value"]) || field["step-value"] < STEP_VALUE)) {
             return false;
         }
 
@@ -222,22 +278,30 @@ export class IntegerFieldType {
     /**
      * @param {Field} field
      * @param {number | null} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
-        }
-
-        if (!Number.isInteger(value)) {
+    async validateFilterValue(field, value = null, attribute = null) {
+        if (attribute !== null && ![
+            FILTER_ATTRIBUTE_FROM,
+            FILTER_ATTRIBUTE_TO
+        ].includes(attribute)) {
             return false;
         }
 
-        if (field["minimal-value"] !== null && value < field["minimal-value"]) {
+        if (value !== null && !Number.isFinite(value)) {
             return false;
         }
 
-        if (field["maximal-value"] !== null && value > field["maximal-value"]) {
+        if (attribute !== null && value === null) {
+            return false;
+        }
+
+        if (value !== null && field["minimal-value"] !== null && value < field["minimal-value"]) {
+            return false;
+        }
+
+        if (value !== null && field["maximal-value"] !== null && value > field["maximal-value"]) {
             return false;
         }
 
@@ -250,7 +314,7 @@ export class IntegerFieldType {
      * @returns {Promise<boolean>}
      */
     async validateValue(field, value = null) {
-        if (value !== null && !Number.isInteger(value)) {
+        if (value !== null && !Number.isFinite(value)) {
             return false;
         }
 

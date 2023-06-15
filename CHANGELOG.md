@@ -6,6 +6,15 @@ Changes:
 
 \-
 
+## v2023-06-15-1-beta
+
+Changes:
+
+- Mulitple inputs per value field filter
+- Allow value field filter
+- Force names for empty value field filter
+- `FluxFilterFormElement`
+
 ## v2023-06-12-1-beta
 
 Changes:

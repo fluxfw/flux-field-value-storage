@@ -1,4 +1,6 @@
 import { FIELD_NAME_PATTERN } from "./FIELD_NAME.mjs";
+import { FIELD_PREFIX } from "./FIELD_PREFIX.mjs";
+import { FILTER_ATTRIBUTE_SEPARATOR } from "./FILTER_ATTRIBUTE_SEPARATOR.mjs";
 import { VALUE_NAME_PATTERN } from "../Value/VALUE_NAME.mjs";
 import { FIELD_POSITION_MOVE, FIELD_POSITION_START, FIELD_POSITION_VALUE } from "./FIELD_POSITION.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_HIDDEN, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_TYPE.mjs";
@@ -353,35 +355,28 @@ export class FieldService {
                 label: "Name",
                 name: "name",
                 pattern: VALUE_NAME_PATTERN.source,
+                required: true,
                 subtitle: "Only letters, digits, dashes, underscores or dots",
                 type: INPUT_TYPE_TEXT
             },
             {
                 label: "Has value",
                 name: "has-value",
-                options: [
-                    {
-                        label: "No",
-                        value: "false"
-                    },
-                    {
-                        label: "Yes",
-                        value: "true"
-                    }
-                ],
-                type: INPUT_TYPE_SELECT
+                type: INPUT_TYPE_CHECKBOX
             }
         ];
 
         for (const field of await this.getFields()) {
-            inputs.push({
-                label: field.label,
-                name: `field-${field.name}`,
-                subtitle: field.subtitle,
-                ...await this.#field_type_service.getValueFilterInput(
-                    field
-                )
-            });
+            for (const input of await this.#field_type_service.getValueFilterInputs(
+                field
+            ) ?? []) {
+                inputs.push({
+                    label: field.label,
+                    subtitle: field.subtitle,
+                    ...input,
+                    name: `${FIELD_PREFIX}${field.name}${(input.name ?? null) !== null ? `${FILTER_ATTRIBUTE_SEPARATOR}${input.name}` : ""}`
+                });
+            }
         }
 
         return inputs;
@@ -426,7 +421,7 @@ export class FieldService {
 
         for (const field of fields) {
             columns.push({
-                key: `field-${field.name}`,
+                key: `${FIELD_PREFIX}${field.name}`,
                 label: field.label,
                 type: await this.#field_type_service.getFormatValueType(
                     field
@@ -439,14 +434,16 @@ export class FieldService {
         for (const value of values) {
             const row = {
                 name: value.name,
-                "has-value": true
+                "has-value": value["has-value"]
             };
 
-            for (const field of fields) {
-                row[`field-${field.name}`] = await this.#field_type_service.getValueAsFormat(
-                    field,
-                    value.values.find(field_value => field_value.name === field.name)?.value ?? null
-                );
+            if (value["has-value"]) {
+                for (const field of fields) {
+                    row[`${FIELD_PREFIX}${field.name}`] = await this.#field_type_service.getValueAsFormat(
+                        field,
+                        value.values.find(field_value => field_value.name === field.name)?.value ?? null
+                    );
+                }
             }
 
             rows.push(row);

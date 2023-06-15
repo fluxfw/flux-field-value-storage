@@ -8,13 +8,11 @@ export const FIELD_TYPE_DATE_TIME = "date-time";
 
 export const FIELD_TYPE_EMAIL = "email";
 
-export const FIELD_TYPE_FLOAT = "float";
-
-export const FIELD_TYPE_INTEGER = "integer";
-
 export const FIELD_TYPE_MULTILINE_TEXT = "multiline-text";
 
 export const FIELD_TYPE_MULTIPLE_SELECT = "multiple-select";
+
+export const FIELD_TYPE_NUMBER = "number";
 
 export const FIELD_TYPE_PASSWORD = "password";
 

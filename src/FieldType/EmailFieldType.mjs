@@ -8,6 +8,8 @@ import { INPUT_TYPE_EMAIL, INPUT_TYPE_TEXT } from "../../../flux-form/src/INPUT_
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/; // https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
 
+const FILTER_ATTRIBUTE_CONTAINS = "contains";
+
 /**
  * @implements {FieldType}
  */
@@ -95,15 +97,26 @@ export class EmailFieldType {
 
     /**
      * @param {Field} field
-     * @returns {Promise<Input>}
+     * @returns {Promise<Input[]>}
      */
-    async getValueFilterInput(field) {
-        return {
-            ...field.placeholder !== "" ? {
-                placeholder: field.placeholder
-            } : null,
-            type: INPUT_TYPE_TEXT
-        };
+    async getValueFilterInputs(field) {
+        return [
+            {
+                ...field.placeholder !== "" ? {
+                    placeholder: field.placeholder
+                } : null,
+                type: INPUT_TYPE_EMAIL
+            },
+            {
+                label: `${field.label} contains`,
+                name: FILTER_ATTRIBUTE_CONTAINS,
+                ...field.placeholder !== "" ? {
+                    placeholder: field.placeholder
+                } : null,
+                required: true,
+                type: INPUT_TYPE_TEXT
+            }
+        ];
     }
 
     /**
@@ -172,14 +185,17 @@ export class EmailFieldType {
      * @param {Field} field
      * @param {string | null} value
      * @param {string | null} filter_value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
+    async matchFilterValue(field, value = null, filter_value = null, attribute = null) {
+        switch (attribute) {
+            case FILTER_ATTRIBUTE_CONTAINS:
+                return (value ?? "").toLowerCase().includes((filter_value ?? "").toLowerCase());
 
-        return value?.toLowerCase()?.includes(filter_value.toLowerCase()) ?? false;
+            default:
+                return (value ?? "") === (filter_value ?? "");
+        }
     }
 
     /**
@@ -197,14 +213,23 @@ export class EmailFieldType {
     /**
      * @param {Field} field
      * @param {string | null} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
+    async validateFilterValue(field, value = null, attribute = null) {
+        if (attribute !== null && attribute !== FILTER_ATTRIBUTE_CONTAINS) {
+            return false;
         }
 
-        if (typeof value !== "string" || value === "") {
+        if (typeof value !== "string") {
+            return false;
+        }
+
+        if (attribute === null && value !== "" && !EMAIL_PATTERN.test(value)) {
+            return false;
+        }
+
+        if (attribute !== null && value === "") {
             return false;
         }
 

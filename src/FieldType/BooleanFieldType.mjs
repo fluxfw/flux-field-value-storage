@@ -1,5 +1,5 @@
 import { FIELD_TYPE_BOOLEAN } from "./FIELD_TYPE.mjs";
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_SELECT } from "../../../flux-form/src/INPUT_TYPE.mjs";
+import { INPUT_TYPE_CHECKBOX } from "../../../flux-form/src/INPUT_TYPE.mjs";
 
 /** @typedef {import("../Field/Field.mjs").Field} Field */
 /** @typedef {import("./FieldType.mjs").FieldType} FieldType */
@@ -80,23 +80,14 @@ export class BooleanFieldType {
     }
 
     /**
-     * @param {Field} field
-     * @returns {Promise<Input>}
+     * @returns {Promise<Input[]>}
      */
-    async getValueFilterInput(field) {
-        return {
-            options: [
-                {
-                    label: "No",
-                    value: "false"
-                },
-                {
-                    label: "Yes",
-                    value: "true"
-                }
-            ],
-            type: INPUT_TYPE_SELECT
-        };
+    async getValueFilterInputs() {
+        return [
+            {
+                type: INPUT_TYPE_CHECKBOX
+            }
+        ];
     }
 
     /**
@@ -159,11 +150,7 @@ export class BooleanFieldType {
      * @returns {Promise<boolean>}
      */
     async matchFilterValue(field, value = null, filter_value = null) {
-        if (filter_value === null) {
-            return true;
-        }
-
-        return (value ?? false) === filter_value;
+        return (value ?? false) === (filter_value ?? false);
     }
 
     /**
@@ -176,11 +163,12 @@ export class BooleanFieldType {
     /**
      * @param {Field} field
      * @param {boolean | null} value
+     * @param {string | null} attribute
      * @returns {Promise<boolean>}
      */
-    async validateFilterValue(field, value = null) {
-        if (value === null) {
-            return true;
+    async validateFilterValue(field, value = null, attribute = null) {
+        if (attribute !== null) {
+            return false;
         }
 
         if (typeof value !== "boolean") {

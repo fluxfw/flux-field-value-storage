@@ -1,5 +1,7 @@
 import { CONFIG_ENV_PREFIX } from "./Config/CONFIG.mjs";
 import { FIELD_NAME_PATTERN } from "./Field/FIELD_NAME.mjs";
+import { FIELD_PREFIX } from "./Field/FIELD_PREFIX.mjs";
+import { FILTER_ATTRIBUTE_SEPARATOR } from "./Field/FILTER_ATTRIBUTE_SEPARATOR.mjs";
 import { VALUE_NAME_PATTERN } from "./Value/VALUE_NAME.mjs";
 import { AUTHENTICATION_CONFIG_DEFAULT_USER, AUTHENTICATION_CONFIG_PASSWORD_KEY, AUTHENTICATION_CONFIG_USER_KEY } from "./Authentication/AUTHENTICATION_CONFIG.mjs";
 import { COLLECTION_NAME_FIELD, COLLECTION_NAME_VALUE } from "./Collection/COLLECTION_NAME.mjs";
@@ -316,13 +318,19 @@ export class FluxFieldValueStorage {
             return null;
         }
 
+        const filter_name = _filter.name ?? null;
+        if (filter_name !== null && (typeof filter_name !== "string" || !VALUE_NAME_PATTERN.test(filter_name))) {
+            return null;
+        }
+
         const filter_has_value = _filter["has-value"] === "true" ? true : _filter["has-value"] === "false" ? false : _filter["has-value"] ?? null;
         if (filter_has_value !== null && typeof filter_has_value !== "boolean") {
             return null;
         }
 
-        if (filter_has_value !== null && !filter_has_value) {
-            return [];
+        const filter_force_names = typeof _filter["force-names"] === "string" ? _filter["force-names"].split(",") : _filter["force-names"] ?? null;
+        if (filter_force_names !== null && (!Array.isArray(filter_force_names) || filter_force_names.length === 0 || filter_force_names.some(name => typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) || new Set(filter_force_names).size !== filter_force_names.length)) {
+            return null;
         }
 
         const field_type_service = await this.#getFieldTypeService();
@@ -331,11 +339,7 @@ export class FluxFieldValueStorage {
         const fields = await (await this.#getFieldService()).getFields();
 
         let values;
-        if ((_filter.name ?? null) !== null) {
-            if (typeof _filter.name !== "string" || !VALUE_NAME_PATTERN.test(_filter.name)) {
-                return null;
-            }
-
+        if (filter_name !== null) {
             const value = await value_service.getValue(
                 _filter.name
             );
@@ -347,9 +351,26 @@ export class FluxFieldValueStorage {
             values = await value_service.getValues();
         }
 
+        if (filter_force_names !== null) {
+            values = [
+                ...values,
+                ...(filter_name !== null ? filter_force_names.filter(name => name === filter_name) : filter_force_names).filter(name => !values.some(value => value.name === name)).map(name => ({
+                    name,
+                    "has-value": false,
+                    values: []
+                }))
+            ];
+        }
+
         const _values = [];
 
         for (const value of values) {
+            const has_value = value["has-value"] ?? true;
+
+            if (filter_has_value !== null && has_value !== filter_has_value) {
+                continue;
+            }
+
             const field_values = [];
 
             let fields_filter = true;
@@ -360,31 +381,49 @@ export class FluxFieldValueStorage {
                     value.values.find(field_value => field_value.id === field.id)?.value ?? null
                 );
 
-                const filter_value = _filter[`field-${field.name}`] ?? null;
+                for (const [
+                    key,
+                    filter_value
+                ] of Object.entries(_filter).filter(([
+                    _key
+                ]) => _key === `${FIELD_PREFIX}${field.name}` || _key.startsWith(`${FIELD_PREFIX}${field.name}${FILTER_ATTRIBUTE_SEPARATOR}`))) {
+                    let attribute = null;
 
-                if (filter_value !== null) {
+                    if (key !== `${FIELD_PREFIX}${field.name}`) {
+                        attribute = key.split(FILTER_ATTRIBUTE_SEPARATOR).splice(1).join(FILTER_ATTRIBUTE_SEPARATOR);
+                    }
+
                     const mapped_filter_value = await field_type_service.mapFilterValue(
                         field,
-                        filter_value
+                        filter_value,
+                        attribute
                     );
 
-                    if (mapped_filter_value !== null) {
-                        if (!await field_type_service.validateFilterValue(
-                            field,
-                            mapped_filter_value
-                        )) {
-                            return null;
-                        }
-
-                        if (!await field_type_service.matchFilterValue(
-                            field,
-                            mapped_value,
-                            mapped_filter_value
-                        )) {
-                            fields_filter = false;
-                            break;
-                        }
+                    if (!await field_type_service.validateFilterValue(
+                        field,
+                        mapped_filter_value,
+                        attribute
+                    )) {
+                        return null;
                     }
+
+                    if (!await field_type_service.matchFilterValue(
+                        field,
+                        mapped_value,
+                        mapped_filter_value,
+                        attribute
+                    )) {
+                        fields_filter = false;
+                        break;
+                    }
+                }
+
+                if (!fields_filter) {
+                    break;
+                }
+
+                if (!has_value) {
+                    continue;
                 }
 
                 field_values.push({
@@ -399,6 +438,7 @@ export class FluxFieldValueStorage {
 
             _values.push({
                 name: value.name,
+                "has-value": has_value,
                 values: field_values
             });
         }

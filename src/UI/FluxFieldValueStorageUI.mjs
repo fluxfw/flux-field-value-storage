@@ -1,4 +1,5 @@
 import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
+import { FIELD_PREFIX } from "./Field/FIELD_PREFIX.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { valueToTimestamp } from "./Libs/flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
@@ -1073,13 +1074,13 @@ export class FluxFieldValueStorageUI {
                         "value/get-filter-inputs"
                     );
 
-                    const table_filter_form_element = (await import("./Libs/flux-form/src/FluxFormElement.mjs")).FluxFormElement.new(
+                    const table_filter_form_element = await (await import("./Libs/flux-form/src/FluxFilterFormElement.mjs")).FluxFilterFormElement.newWithInputs(
                         value_table_filter_inputs
                     );
 
-                    if (this.#value_table_filter !== null) {
-                        table_filter_form_element.values = this.#value_table_filter;
-                    }
+                    await table_filter_form_element.setValues(
+                        this.#value_table_filter
+                    );
 
                     this.#value_table_filter_inputs = value_table_filter_inputs;
                     this.#value_table_filter_form_element = table_filter_form_element;
@@ -1088,9 +1089,9 @@ export class FluxFieldValueStorageUI {
                 if (this.#value_table_filter !== null) {
                     this.#value_table ??= await this.#request(
                         "value/get-table",
-                        Object.fromEntries(await Promise.all(this.#value_table_filter.filter(value => value.value !== null && value.value !== "" && (Array.isArray(value.value) ? value.value.length > 0 : true)).map(async value => [
+                        Object.fromEntries(await Promise.all(this.#value_table_filter.map(async value => [
                             value.name,
-                            !value.name.startsWith("field-") && [
+                            !value.name.startsWith(FIELD_PREFIX) && [
                                 INPUT_TYPE_DATE,
                                 INPUT_TYPE_DATETIME_LOCAL,
                                 INPUT_TYPE_TIME
