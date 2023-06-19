@@ -279,7 +279,7 @@ export class FluxFieldValueStorageUI {
                     await this.#request(
                         `field/store/${result.inputs.find(value => value.name === "name").value}`,
                         null,
-                        Object.fromEntries(result.inputs.map(value => [
+                        Object.fromEntries(result.inputs.filter(input => input.name !== "type-label").map(value => [
                             value.name,
                             inputs.find(input => input.name === value.name)?.type === INPUT_TYPE_ENTRIES ? value.value.map(_value => Object.fromEntries(_value.map(__value => [
                                 __value.name,

@@ -6,10 +6,19 @@ Changes:
 
 \-
 
+## v2023-06-19-1-beta
+
+Changes:
+
+- Value filter also via JSON `POST`
+- Remove exists values not exists in force names
+- `HttpClientResponse` error log
+
 ## v2023-06-15-1-beta
 
 Changes:
 
+- Merge `Integer` and `Float` field type to single `Number` field type with optional step
 - Mulitple inputs per value field filter
 - Allow value field filter
 - Force names for empty value field filter

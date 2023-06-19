@@ -150,6 +150,7 @@ export class FieldService {
             },
             {
                 label: "Type",
+                name: "type-label",
                 "read-only": true,
                 type: INPUT_TYPE_TEXT,
                 value: await field_type.getTypeLabel()

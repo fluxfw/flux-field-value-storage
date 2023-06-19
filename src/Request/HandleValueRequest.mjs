@@ -1,5 +1,5 @@
 import { HttpServerResponse } from "../../../flux-http-api/src/Server/HttpServerResponse.mjs";
-import { METHOD_DELETE, METHOD_GET, METHOD_HEAD, METHOD_PATCH, METHOD_PUT } from "../../../flux-http-api/src/Method/METHOD.mjs";
+import { METHOD_DELETE, METHOD_GET, METHOD_HEAD, METHOD_PATCH, METHOD_POST, METHOD_PUT } from "../../../flux-http-api/src/Method/METHOD.mjs";
 import { STATUS_CODE_400, STATUS_CODE_404 } from "../../../flux-http-api/src/Status/STATUS_CODE.mjs";
 
 /** @typedef {import("../FluxFieldValueStorage.mjs").FluxFieldValueStorage} FluxFieldValueStorage */
@@ -358,7 +358,8 @@ export class HandleValueRequest {
             request,
             [
                 METHOD_GET,
-                METHOD_HEAD
+                METHOD_HEAD,
+                METHOD_POST
             ]
         );
 
@@ -366,8 +367,24 @@ export class HandleValueRequest {
             return response;
         }
 
+        let filter;
+        if (request.method === METHOD_POST) {
+            try {
+                filter = await request.body.json();
+            } catch (error) {
+                console.error(error);
+
+                return HttpServerResponse.text(
+                    "Invalid filter",
+                    STATUS_CODE_400
+                );
+            }
+        } else {
+            filter = Object.fromEntries(request.url.searchParams);
+        }
+
         const values = await this.#flux_field_value_storage.getValues(
-            Object.fromEntries(request.url.searchParams)
+            filter
         );
 
         if (values === null) {
@@ -391,7 +408,8 @@ export class HandleValueRequest {
             request,
             [
                 METHOD_GET,
-                METHOD_HEAD
+                METHOD_HEAD,
+                METHOD_POST
             ]
         );
 
@@ -399,8 +417,24 @@ export class HandleValueRequest {
             return response;
         }
 
+        let filter;
+        if (request.method === METHOD_POST) {
+            try {
+                filter = await request.body.json();
+            } catch (error) {
+                console.error(error);
+
+                return HttpServerResponse.text(
+                    "Invalid filter",
+                    STATUS_CODE_400
+                );
+            }
+        } else {
+            filter = Object.fromEntries(request.url.searchParams);
+        }
+
         const table = await this.#flux_field_value_storage.getValueTable(
-            Object.fromEntries(request.url.searchParams)
+            filter
         );
 
         if (table === null) {

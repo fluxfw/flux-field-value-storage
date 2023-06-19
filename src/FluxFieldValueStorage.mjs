@@ -353,7 +353,7 @@ export class FluxFieldValueStorage {
 
         if (filter_force_names !== null) {
             values = [
-                ...values,
+                ...values.filter(value => filter_force_names.includes(value.name)),
                 ...(filter_name !== null ? filter_force_names.filter(name => name === filter_name) : filter_force_names).filter(name => !values.some(value => value.name === name)).map(name => ({
                     name,
                     "has-value": false,
