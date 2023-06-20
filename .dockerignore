@@ -4,4 +4,6 @@
 !bin/server.mjs
 !src
 !src/**
-src/index.html
+src/UI/index*.html
+src/UI/Pwa/manifest*.json
+!src/UI/Pwa/manifest-template.json

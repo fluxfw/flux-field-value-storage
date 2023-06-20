@@ -6,15 +6,23 @@ let flux_shutdown_handler = null;
 try {
     flux_shutdown_handler = (await import("../../flux-shutdown-handler/src/FluxShutdownHandler.mjs")).FluxShutdownHandler.new();
 
-    const web_root = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "UI");
+    const flux_pwa_generator = (await import("../../flux-pwa-generator/src/FluxPwaGenerator.mjs")).FluxPwaGenerator.new();
 
-    await (await import("../../flux-pwa-generator/src/FluxPwaGenerator.mjs")).FluxPwaGenerator.new()
-        .generateIndexHtmls(
-            join(web_root, "Pwa", "manifest.json"),
-            join(web_root, "index.html"),
-            "Pwa/manifest.json",
-            "index.mjs"
-        );
+    const web_root = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "UI");
+    const pwa_folder = join(web_root, "Pwa");
+    const manifest_json_file = join(pwa_folder, "manifest.json");
+
+    await flux_pwa_generator.generateManifestJsons(
+        join(pwa_folder, "manifest-template.json"),
+        manifest_json_file
+    );
+
+    await flux_pwa_generator.generateIndexHtmls(
+        manifest_json_file,
+        join(web_root, "index.html"),
+        "Pwa/manifest.json",
+        "index.mjs"
+    );
 } catch (error) {
     console.error(error);
 

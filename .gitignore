@@ -9,4 +9,6 @@
 !Dockerfile
 !metadata.json
 !README.md
-src/index.html
+src/UI/index*.html
+src/UI/Pwa/manifest*.json
+!src/UI/Pwa/manifest-template.json
