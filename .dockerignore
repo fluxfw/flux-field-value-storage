@@ -6,4 +6,5 @@
 !src/**
 src/UI/index*.html
 src/UI/Pwa/manifest*.json
+!src/UI/index-template.html
 !src/UI/Pwa/manifest-template.json
