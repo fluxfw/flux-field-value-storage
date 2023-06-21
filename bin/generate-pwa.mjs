@@ -9,11 +9,11 @@ try {
     const flux_pwa_generator = (await import("../../flux-pwa-generator/src/FluxPwaGenerator.mjs")).FluxPwaGenerator.new();
 
     const web_root = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "UI");
-    const pwa_folder = join(web_root, "Pwa");
-    const manifest_json_file = join(pwa_folder, "manifest.json");
+    const manifest_folder = join(web_root, "Manifest");
+    const manifest_json_file = join(manifest_folder, "manifest.json");
 
     await flux_pwa_generator.generateManifestJsons(
-        join(pwa_folder, "manifest-template.json"),
+        join(manifest_folder, "manifest-template.json"),
         manifest_json_file
     );
 

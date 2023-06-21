@@ -10,6 +10,6 @@
 !metadata.json
 !README.md
 src/UI/index*.html
-src/UI/Pwa/manifest*.json
+src/UI/Manifest/manifest*.json
 !src/UI/index-template.html
-!src/UI/Pwa/manifest-template.json
+!src/UI/Manifest/manifest-template.json
