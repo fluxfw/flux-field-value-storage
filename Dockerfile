@@ -1,5 +1,7 @@
 FROM node:20-alpine AS build
 
+RUN apk add --no-cache imagemagick
+
 COPY bin/install-libraries.sh /build/flux-field-value-storage/libs/flux-field-value-storage/bin/install-libraries.sh
 RUN /build/flux-field-value-storage/libs/flux-field-value-storage/bin/install-libraries.sh
 

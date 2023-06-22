@@ -9,7 +9,10 @@
 !Dockerfile
 !metadata.json
 !README.md
-src/UI/index*.html
+src/UI/Icon/icon*.*
 src/UI/Manifest/manifest*.json
-!src/UI/index-template.html
+src/UI/favicon.ico
+src/UI/index*.html
+!src/UI/Icon/icon-template.svg
 !src/UI/Manifest/manifest-template.json
+!src/UI/index-template.html
