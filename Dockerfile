@@ -9,7 +9,7 @@ RUN ln -s libs/flux-field-value-storage/bin /build/flux-field-value-storage/bin
 
 COPY . /build/flux-field-value-storage/libs/flux-field-value-storage
 
-RUN /build/flux-field-value-storage/libs/flux-field-value-storage/bin/generate-pwa.mjs
+RUN /build/flux-field-value-storage/libs/flux-field-value-storage/bin/build.mjs prod
 
 FROM node:20-alpine
 
