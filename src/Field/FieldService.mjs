@@ -283,7 +283,7 @@ export class FieldService {
             label_1
         ], [
             label_2
-        ]) => (label_1 > label_2 ? 1 : label_1 < label_2 ? -1 : 0))) {
+        ]) => label_1 > label_2 ? 1 : label_1 < label_2 ? -1 : 0)) {
             options.push({
                 label,
                 value: await field_type.getType()
