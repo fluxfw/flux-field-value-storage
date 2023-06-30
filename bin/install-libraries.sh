@@ -25,7 +25,7 @@ installLibrary flux-authentication-backend https://github.com/fluxfw/flux-authen
 
 installLibrary flux-button-group https://github.com/fluxfw/flux-button-group/archive/refs/tags/v2023-06-05-1.tar.gz
 
-installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-06-05-1.tar.gz
+installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-06-30-1.tar.gz
 
 installLibrary flux-config-api https://github.com/fluxfw/flux-config-api/archive/refs/tags/v2023-06-08-1.tar.gz
 

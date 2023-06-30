@@ -1,4 +1,3 @@
-import { COLOR_SCHEME_LIGHT } from "./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs";
 import { FIELD_PREFIX } from "./Field/FIELD_PREFIX.mjs";
 import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
@@ -1012,13 +1011,9 @@ export class FluxFieldValueStorageUI {
      * @returns {Promise<FluxColorScheme>}
      */
     async #getFluxColorScheme() {
-        this.#flux_color_scheme ??= (await import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs")).FluxColorScheme.new(
-            [
-                {
-                    color_scheme: COLOR_SCHEME_LIGHT,
-                    name: "light"
-                }
-            ]
+        this.#flux_color_scheme ??= await (await import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs")).FluxColorScheme.new(
+            null,
+            (await import("./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs")).COLOR_SCHEME_LIGHT
         );
 
         return this.#flux_color_scheme;
