@@ -310,25 +310,28 @@ export class FluxFieldValueStorage {
 
     /**
      * @param {{[key: string]: *} | null} filter
+     * @param {boolean | null} map_filter_value
      * @returns {Promise<Value[] | null>}
      */
-    async getValues(filter = null) {
+    async getValues(filter = null, map_filter_value = null) {
         const _filter = filter ?? {};
         if (typeof _filter !== "object") {
             return null;
         }
+
+        const _map_filter_value = map_filter_value ?? false;
 
         const filter_name = _filter.name ?? null;
         if (filter_name !== null && (typeof filter_name !== "string" || !VALUE_NAME_PATTERN.test(filter_name))) {
             return null;
         }
 
-        const filter_has_value = _filter["has-value"] === "true" ? true : _filter["has-value"] === "false" ? false : _filter["has-value"] ?? null;
+        const filter_has_value = (_map_filter_value ? _filter["has-value"] === "true" ? true : _filter["has-value"] === "false" ? false : null : null) ?? (_filter["has-value"] ?? null);
         if (filter_has_value !== null && typeof filter_has_value !== "boolean") {
             return null;
         }
 
-        const filter_force_names = typeof _filter["force-names"] === "string" ? _filter["force-names"].split(",") : _filter["force-names"] ?? null;
+        const filter_force_names = (_map_filter_value ? typeof _filter["force-names"] === "string" ? _filter["force-names"].split(",") : null : null) ?? (_filter["force-names"] ?? null);
         if (filter_force_names !== null && (!Array.isArray(filter_force_names) || filter_force_names.length === 0 || filter_force_names.some(name => typeof name !== "string" || !VALUE_NAME_PATTERN.test(name)) || new Set(filter_force_names).size !== filter_force_names.length)) {
             return null;
         }
@@ -393,11 +396,11 @@ export class FluxFieldValueStorage {
                         attribute = key.split(FILTER_ATTRIBUTE_SEPARATOR).splice(1).join(FILTER_ATTRIBUTE_SEPARATOR);
                     }
 
-                    const mapped_filter_value = await field_type_service.mapFilterValue(
+                    const mapped_filter_value = _map_filter_value ? await field_type_service.mapFilterValue(
                         field,
                         filter_value,
                         attribute
-                    );
+                    ) : filter_value;
 
                     if (!await field_type_service.validateFilterValue(
                         field,
@@ -448,11 +451,13 @@ export class FluxFieldValueStorage {
 
     /**
      * @param {{[key: string]: *} | null} filter
+     * @param {boolean | null} map_filter_value
      * @returns {Promise<ValueTable | null>}
      */
-    async getValueTable(filter = null) {
+    async getValueTable(filter = null, map_filter_value = null) {
         const values = await this.getValues(
-            filter
+            filter,
+            map_filter_value
         );
 
         if (values === null) {

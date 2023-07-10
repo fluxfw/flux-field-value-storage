@@ -1,8 +1,7 @@
 :root {
-    --flux-color-scheme-dark-accent: #000080;
-    --flux-color-scheme-dark-accent-rgb: 0, 0, 128;
-    --flux-color-scheme-light-accent: #000080;
-    --flux-color-scheme-light-accent-rgb: 0, 0, 128;
+    --accent-color-rgb: 0, 0, 128;
+    --flux-color-scheme-dark-accent-color-rgb: var(--accent-color-rgb);
+    --flux-color-scheme-light-accent-color-rgb: var(--accent-color-rgb);
     font-family: Arial, Helvetica, sans-serif;
     margin: 10px;
 }

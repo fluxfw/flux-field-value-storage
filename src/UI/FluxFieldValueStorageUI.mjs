@@ -137,16 +137,16 @@ export class FluxFieldValueStorageUI {
                     break;
             }
         });
-        container_element.appendChild(this.#flux_button_group_element);
+        container_element.append(this.#flux_button_group_element);
 
         this.#field_element = document.createElement("div");
         this.#field_element.style.display = "none";
-        container_element.appendChild(this.#field_element);
+        container_element.append(this.#field_element);
 
         this.#value_element = document.createElement("div");
-        container_element.appendChild(this.#value_element);
+        container_element.append(this.#value_element);
 
-        document.body.appendChild(container_element);
+        document.body.append(container_element);
 
         this.#getValueTable();
     }
@@ -790,7 +790,7 @@ export class FluxFieldValueStorageUI {
             this.#flux_button_group_element.disabled = true;
 
             const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-            this.#field_element.appendChild(flux_loading_spinner_element);
+            this.#field_element.append(flux_loading_spinner_element);
 
             try {
                 this.#field_table = await this.#request(
@@ -801,7 +801,7 @@ export class FluxFieldValueStorageUI {
 
                 const error_element = document.createElement("div");
                 error_element.innerText = "Couldn't load fields!";
-                this.#field_element.appendChild(error_element);
+                this.#field_element.append(error_element);
 
                 return;
             } finally {
@@ -853,7 +853,7 @@ export class FluxFieldValueStorageUI {
                     break;
             }
         });
-        this.#field_element.appendChild(actions_flux_button_only_button_group_element);
+        this.#field_element.append(actions_flux_button_only_button_group_element);
 
         const flux_value_format = await this.#getFluxValueFormat();
 
@@ -1004,7 +1004,7 @@ export class FluxFieldValueStorageUI {
             },
             "No fields"
         );
-        this.#field_element.appendChild(flux_table_element);
+        this.#field_element.append(flux_table_element);
     }
 
     /**
@@ -1012,6 +1012,7 @@ export class FluxFieldValueStorageUI {
      */
     async #getFluxColorScheme() {
         this.#flux_color_scheme ??= await (await import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs")).FluxColorScheme.new(
+            null,
             null,
             (await import("./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs")).COLOR_SCHEME_LIGHT
         );
@@ -1059,7 +1060,7 @@ export class FluxFieldValueStorageUI {
             this.#flux_button_group_element.disabled = true;
 
             const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-            this.#value_element.appendChild(flux_loading_spinner_element);
+            this.#value_element.append(flux_loading_spinner_element);
 
             try {
                 if (this.#value_table_filter_form_element === null) {
@@ -1113,12 +1114,12 @@ export class FluxFieldValueStorageUI {
 
         if (this.#value_table_filter_form_element === null) {
             if (error_element !== null) {
-                this.#value_element.appendChild(error_element);
+                this.#value_element.append(error_element);
             }
             return;
         }
 
-        this.#value_element.appendChild(this.#value_table_filter_form_element);
+        this.#value_element.append(this.#value_table_filter_form_element);
 
         const {
             FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
@@ -1165,18 +1166,18 @@ export class FluxFieldValueStorageUI {
                     break;
             }
         });
-        this.#value_element.appendChild(actions_flux_button_only_button_group_element);
+        this.#value_element.append(actions_flux_button_only_button_group_element);
 
         if (this.#value_table === null) {
             if (error_element !== null) {
-                this.#value_element.appendChild(error_element);
+                this.#value_element.append(error_element);
             }
             return;
         }
 
         const flux_value_format = await this.#getFluxValueFormat();
 
-        this.#value_element.appendChild(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
+        this.#value_element.append(await (await import("./Libs/flux-table/src/FluxTableElement.mjs")).FluxTableElement.newWithData(
             [
                 ...this.#value_table.columns,
                 {

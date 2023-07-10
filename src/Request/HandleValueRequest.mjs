@@ -384,7 +384,8 @@ export class HandleValueRequest {
         }
 
         const values = await this.#flux_field_value_storage.getValues(
-            filter
+            filter,
+            true
         );
 
         if (values === null) {
@@ -434,7 +435,8 @@ export class HandleValueRequest {
         }
 
         const table = await this.#flux_field_value_storage.getValueTable(
-            filter
+            filter,
+            true
         );
 
         if (table === null) {
