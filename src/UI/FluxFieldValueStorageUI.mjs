@@ -1033,7 +1033,7 @@ export class FluxFieldValueStorageUI {
      * @returns {Promise<FluxPwaApi>}
      */
     async #getFluxPwaApi() {
-        this.#flux_pwa_api ??= (await import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs")).FluxPwaApi.new(
+        this.#flux_pwa_api ??= await (await import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs")).FluxPwaApi.new(
             await this.#getFluxHttpApi()
         );
 
