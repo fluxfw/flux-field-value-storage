@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "node:url";
+import { MANIFEST_TEMPLATE } from "../src/UI/Manifest/manifest-template.mjs";
 import { basename, dirname, extname, join } from "node:path/posix";
 
 let flux_shutdown_handler = null;
@@ -14,8 +15,6 @@ try {
         throw new Error("Please pass prod or dev");
     }
 
-    const flux_pwa_generator = (await import("../../flux-pwa-generator/src/FluxPwaGenerator.mjs")).FluxPwaGenerator.new();
-
     const bin_folder = dirname(fileURLToPath(import.meta.url));
     const root_folder = join(bin_folder, "..");
     const libs_folder = join(root_folder, "..");
@@ -23,18 +22,19 @@ try {
     const ui_folder = join(src_folder, "UI");
     const icon_folder = join(ui_folder, "Icon");
     const manifest_folder = join(ui_folder, "Manifest");
-    const manifest_json_file = join(manifest_folder, "manifest.json");
     const index_template_html_file = join(ui_folder, "index-template.html");
-    const icon_template_file = join(icon_folder, "icon-template.svg");
-    const manifest_template_json_file = join(manifest_folder, "manifest-template.json");
     const index_html_file = join(ui_folder, "index.html");
+    const icon_template_file = join(icon_folder, "icon-template.svg");
+    const manifest_json_file = join(manifest_folder, "manifest.json");
     const libs_file_filter = root_file => root_file.startsWith("flux-") ? (root_file.includes("/bin/") || root_file.includes("/src/")) && !root_file.startsWith("flux-pwa-generator/") && !root_file.endsWith("/bin/build.mjs") && ![
         ".md",
         ".sh"
     ].includes(extname(root_file)) && !basename(root_file).includes("-template") : true;
 
+    const flux_pwa_generator = (await import("../../flux-pwa-generator/src/FluxPwaGenerator.mjs")).FluxPwaGenerator.new();
+
     await flux_pwa_generator.generateManifestJsons(
-        manifest_template_json_file,
+        MANIFEST_TEMPLATE,
         manifest_json_file
     );
 

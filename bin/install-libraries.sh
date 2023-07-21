@@ -25,7 +25,7 @@ installLibrary flux-authentication-backend https://github.com/fluxfw/flux-authen
 
 installLibrary flux-button-group https://github.com/fluxfw/flux-button-group/archive/refs/tags/v2023-07-10-1.tar.gz
 
-installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-07-18-1.tar.gz
+installLibrary flux-color-scheme https://github.com/fluxfw/flux-color-scheme/archive/refs/tags/v2023-07-21-1.tar.gz
 
 installLibrary flux-config-api https://github.com/fluxfw/flux-config-api/archive/refs/tags/v2023-06-08-1.tar.gz
 
@@ -41,9 +41,9 @@ installLibrary flux-mongo-db-connector https://github.com/fluxfw/flux-mongo-db-c
 
 installLibrary flux-overlay https://github.com/fluxfw/flux-overlay/archive/refs/tags/v2023-07-10-1.tar.gz
 
-installLibrary flux-pwa-api https://github.com/fluxfw/flux-pwa-api/archive/refs/tags/v2023-07-17-1.tar.gz
+installLibrary flux-pwa-api https://github.com/fluxfw/flux-pwa-api/archive/refs/tags/v2023-07-21-1.tar.gz
 
-installLibrary flux-pwa-generator https://github.com/fluxfw/flux-pwa-generator/archive/refs/tags/v2023-07-17-1.tar.gz
+installLibrary flux-pwa-generator https://github.com/fluxfw/flux-pwa-generator/archive/refs/tags/v2023-07-21-1.tar.gz
 
 installLibrary flux-shutdown-handler https://github.com/fluxfw/flux-shutdown-handler/archive/refs/tags/v2023-03-16-1.tar.gz
 
