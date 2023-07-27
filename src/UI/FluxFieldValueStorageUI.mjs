@@ -1,5 +1,5 @@
 import { FIELD_PREFIX } from "./Field/FIELD_PREFIX.mjs";
-import { flux_css_api } from "./Libs/flux-css-api/src/FluxCssApi.mjs";
+import { flux_import_css } from "./Libs/flux-style-sheet-manager/src/FluxImportCss.mjs";
 import { HttpClientRequest } from "./Libs/flux-http-api/src/Client/HttpClientRequest.mjs";
 import { valueToTimestamp } from "./Libs/flux-value-format/src/DEFAULT_FORMAT_VALUE_TYPES.mjs";
 import { INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_TIME } from "./Libs/flux-form/src/INPUT_TYPE.mjs";
@@ -11,16 +11,15 @@ import { METHOD_DELETE, METHOD_POST, METHOD_PUT } from "./Libs/flux-http-api/src
 /** @typedef {import("./Libs/flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
 /** @typedef {import("./Libs/flux-http-api/src/FluxHttpApi.mjs").FluxHttpApi} FluxHttpApi */
 /** @typedef {import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs").FluxPwaApi} FluxPwaApi */
+/** @typedef {import("./Libs/flux-style-sheet-manager/src/FluxStyleSheetManager.mjs").FluxStyleSheetManager} FluxStyleSheetManager */
 /** @typedef {import("./Libs/flux-value-format/src/FluxValueFormat.mjs").FluxValueFormat} FluxValueFormat */
 /** @typedef {import("./Libs/flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("./Libs/flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("../Value/ValueTable.mjs").ValueTable} ValueTable */
 
-const layout_css = await flux_css_api.import(
+const layout_css = await flux_import_css.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/Layout/style.css`
 );
-
-document.adoptedStyleSheets.push(layout_css);
 
 export class FluxFieldValueStorageUI {
     /**
@@ -39,6 +38,10 @@ export class FluxFieldValueStorageUI {
      * @type {FluxPwaApi | null}
      */
     #flux_pwa_api = null;
+    /**
+     * @type {FluxStyleSheetManager | null}
+     */
+    #flux_style_sheet_manager = null;
     /**
      * @type {FluxValueFormat | null}
      */
@@ -95,12 +98,10 @@ export class FluxFieldValueStorageUI {
         const container_element = document.createElement("div");
 
         const {
-            FLUX_BUTTON_GROUP_EVENT_INPUT
-        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_GROUP_EVENT.mjs");
-        const {
+            FLUX_BUTTON_GROUP_ELEMENT_EVENT_INPUT,
             FluxButtonGroupElement
         } = await import("./Libs/flux-button-group/src/FluxButtonGroupElement.mjs");
-        this.#flux_button_group_element = FluxButtonGroupElement.new(
+        this.#flux_button_group_element = await FluxButtonGroupElement.new(
             [
                 {
                     label: "Fields",
@@ -111,9 +112,10 @@ export class FluxFieldValueStorageUI {
                     selected: true,
                     value: "values"
                 }
-            ]
+            ],
+            await this.#getFluxStyleSheetManager()
         );
-        this.#flux_button_group_element.addEventListener(FLUX_BUTTON_GROUP_EVENT_INPUT, async e => {
+        this.#flux_button_group_element.addEventListener(FLUX_BUTTON_GROUP_ELEMENT_EVENT_INPUT, async e => {
             this.#field_element.style.display = "none";
             this.#field_element.innerHTML = "";
 
@@ -159,8 +161,11 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = FluxOverlayElement.new(
-            "Add field"
+        const flux_overlay_element = await FluxOverlayElement.new(
+            "Add field",
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
         await flux_overlay_element.showLoading();
         flux_overlay_element.show();
@@ -178,7 +183,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Add field",
                 "Couldn't load field!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -322,8 +328,11 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = FluxOverlayElement.new(
-            "Add value"
+        const flux_overlay_element = await FluxOverlayElement.new(
+            "Add value",
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
         await flux_overlay_element.showLoading();
         flux_overlay_element.show();
@@ -341,7 +350,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Add value",
                 "Couldn't load value!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -385,8 +395,11 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = FluxOverlayElement.new(
-            "Add value"
+        const flux_overlay_element = await FluxOverlayElement.new(
+            "Add value",
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
         await flux_overlay_element.showLoading();
         flux_overlay_element.show();
@@ -404,7 +417,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Add value",
                 "Couldn't load value!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -491,12 +505,15 @@ export class FluxFieldValueStorageUI {
             "Delete field",
             "Are you sure you want to delete the field?",
             "No",
-            "Yes"
+            "Yes",
+            await this.#getFluxStyleSheetManager()
         )) {
             return false;
         }
 
-        const flux_overlay_element = await FluxOverlayElement.loading();
+        const flux_overlay_element = await FluxOverlayElement.loading(
+            await this.#getFluxStyleSheetManager()
+        );
 
         try {
             await this.#request(
@@ -514,7 +531,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Delete field",
                 "Couldn't delete field!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -538,12 +556,15 @@ export class FluxFieldValueStorageUI {
             "Delete value",
             "Are you sure you want to delete the value?",
             "No",
-            "Yes"
+            "Yes",
+            await this.#getFluxStyleSheetManager()
         )) {
             return false;
         }
 
-        const flux_overlay_element = await FluxOverlayElement.loading();
+        const flux_overlay_element = await FluxOverlayElement.loading(
+            await this.#getFluxStyleSheetManager()
+        );
 
         try {
             await this.#request(
@@ -561,7 +582,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Delete value",
                 "Couldn't delete value!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -581,8 +603,11 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = FluxOverlayElement.new(
-            "Edit field"
+        const flux_overlay_element = await FluxOverlayElement.new(
+            "Edit field",
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
         await flux_overlay_element.showLoading();
         flux_overlay_element.show();
@@ -600,7 +625,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Edit field",
                 "Couldn't load field!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -687,8 +713,11 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = FluxOverlayElement.new(
-            "Edit value"
+        const flux_overlay_element = await FluxOverlayElement.new(
+            "Edit value",
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
         await flux_overlay_element.showLoading();
         flux_overlay_element.show();
@@ -706,7 +735,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Edit value",
                 "Couldn't load value!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -789,7 +819,9 @@ export class FluxFieldValueStorageUI {
         if (this.#field_table === null) {
             this.#flux_button_group_element.disabled = true;
 
-            const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+            const flux_loading_spinner_element = await (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new(
+                await this.#getFluxStyleSheetManager()
+            );
             this.#field_element.append(flux_loading_spinner_element);
 
             try {
@@ -812,12 +844,10 @@ export class FluxFieldValueStorageUI {
         }
 
         const {
-            FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
-        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT.mjs");
-        const {
+            FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK,
             FluxButtonOnlyButtonGroupElement
         } = await import("./Libs/flux-button-group/src/FluxButtonOnlyButtonGroupElement.mjs");
-        const actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+        const actions_flux_button_only_button_group_element = await FluxButtonOnlyButtonGroupElement.new(
             [
                 {
                     label: "Add",
@@ -827,9 +857,10 @@ export class FluxFieldValueStorageUI {
                     label: "Refresh",
                     value: "refresh"
                 }
-            ]
+            ],
+            await this.#getFluxStyleSheetManager()
         );
-        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK, async e => {
             switch (e.detail.value) {
                 case "add":
                     if (!await this.#addField()) {
@@ -874,7 +905,7 @@ export class FluxFieldValueStorageUI {
                 const row = this.#field_table.rows.find(_row => _row.name === name) ?? null;
 
                 if (type === "actions") {
-                    const row_actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+                    const row_actions_flux_button_only_button_group_element = await FluxButtonOnlyButtonGroupElement.new(
                         [
                             {
                                 label: "Edit",
@@ -894,9 +925,10 @@ export class FluxFieldValueStorageUI {
                                 label: "Delete",
                                 value: "delete"
                             }
-                        ]
+                        ],
+                        await this.#getFluxStyleSheetManager()
                     );
-                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK, async e => {
                         switch (e.detail.value) {
                             case "delete": {
                                 if (!await this.#deleteField(
@@ -1002,7 +1034,8 @@ export class FluxFieldValueStorageUI {
                     ] : []
                 ];
             },
-            "No fields"
+            "No fields",
+            await this.#getFluxStyleSheetManager()
         );
         this.#field_element.append(flux_table_element);
     }
@@ -1014,7 +1047,14 @@ export class FluxFieldValueStorageUI {
         this.#flux_color_scheme ??= await (await import("./Libs/flux-color-scheme/src/FluxColorScheme.mjs")).FluxColorScheme.new(
             null,
             null,
-            (await import("./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs")).COLOR_SCHEME_LIGHT
+            (await import("./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME.mjs")).COLOR_SCHEME_LIGHT,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            await this.#getFluxStyleSheetManager()
         );
 
         return this.#flux_color_scheme;
@@ -1034,17 +1074,31 @@ export class FluxFieldValueStorageUI {
      */
     async #getFluxPwaApi() {
         this.#flux_pwa_api ??= await (await import("./Libs/flux-pwa-api/src/FluxPwaApi.mjs")).FluxPwaApi.new(
-            await this.#getFluxHttpApi()
+            await this.#getFluxHttpApi(),
+            await this.#getFluxStyleSheetManager()
         );
 
         return this.#flux_pwa_api;
     }
 
     /**
+     * @returns {Promise<FluxStyleSheetManager>}
+     */
+    async #getFluxStyleSheetManager() {
+        this.#flux_style_sheet_manager ??= await (await import("./Libs/flux-style-sheet-manager/src/FluxStyleSheetManager.mjs")).FluxStyleSheetManager.new(
+            (await import("./Libs/flux-color-scheme/src/ColorScheme/COLOR_SCHEME_VARIABLE.mjs")).COLOR_SCHEME_VARIABLE_PREFIX
+        );
+
+        return this.#flux_style_sheet_manager;
+    }
+
+    /**
      * @returns {Promise<FluxValueFormat>}
      */
     async #getFluxValueFormat() {
-        this.#flux_value_format ??= (await import("./Libs/flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
+        this.#flux_value_format ??= await (await import("./Libs/flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new(
+            await this.#getFluxStyleSheetManager()
+        );
 
         return this.#flux_value_format;
     }
@@ -1059,7 +1113,9 @@ export class FluxFieldValueStorageUI {
         if (this.#value_table_filter_form_element === null || this.#value_table === null) {
             this.#flux_button_group_element.disabled = true;
 
-            const flux_loading_spinner_element = (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+            const flux_loading_spinner_element = await (await import("./Libs/flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new(
+                await this.#getFluxStyleSheetManager()
+            );
             this.#value_element.append(flux_loading_spinner_element);
 
             try {
@@ -1070,8 +1126,9 @@ export class FluxFieldValueStorageUI {
                         "value/get-filter-inputs"
                     );
 
-                    const table_filter_form_element = await (await import("./Libs/flux-form/src/FluxFilterFormElement.mjs")).FluxFilterFormElement.newWithInputs(
-                        value_table_filter_inputs
+                    const table_filter_form_element = await (await import("./Libs/flux-form/src/FluxFilterFormElement.mjs")).FluxFilterFormElement.new(
+                        value_table_filter_inputs,
+                        await this.#getFluxStyleSheetManager()
                     );
 
                     await table_filter_form_element.setValues(
@@ -1122,12 +1179,10 @@ export class FluxFieldValueStorageUI {
         this.#value_element.append(this.#value_table_filter_form_element);
 
         const {
-            FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK
-        } = await import("./Libs/flux-button-group/src/FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT.mjs");
-        const {
+            FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK,
             FluxButtonOnlyButtonGroupElement
         } = await import("./Libs/flux-button-group/src/FluxButtonOnlyButtonGroupElement.mjs");
-        const actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+        const actions_flux_button_only_button_group_element = await FluxButtonOnlyButtonGroupElement.new(
             [
                 {
                     label: "View",
@@ -1139,9 +1194,10 @@ export class FluxFieldValueStorageUI {
                         value: "add"
                     }
                 ] : []
-            ]
+            ],
+            await this.#getFluxStyleSheetManager()
         );
-        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+        actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK, async e => {
             switch (e.detail.value) {
                 case "add":
                     if (!await this.#addNewValue()) {
@@ -1193,7 +1249,7 @@ export class FluxFieldValueStorageUI {
                 const row = this.#value_table.rows.find(_row => _row.name === name) ?? null;
 
                 if (type === "actions") {
-                    const row_actions_flux_button_only_button_group_element = FluxButtonOnlyButtonGroupElement.new(
+                    const row_actions_flux_button_only_button_group_element = await FluxButtonOnlyButtonGroupElement.new(
                         row["has-value"] ? [
                             {
                                 label: "Edit",
@@ -1208,9 +1264,10 @@ export class FluxFieldValueStorageUI {
                                 label: "Add",
                                 value: "add"
                             }
-                        ]
+                        ],
+                        await this.#getFluxStyleSheetManager()
                     );
-                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_EVENT_CLICK, async e => {
+                    row_actions_flux_button_only_button_group_element.addEventListener(FLUX_BUTTON_ONLY_BUTTON_GROUP_ELEMENT_EVENT_CLICK, async e => {
                         switch (e.detail.value) {
                             case "add":
                                 if (!await this.#addValue(
@@ -1258,7 +1315,8 @@ export class FluxFieldValueStorageUI {
                 );
             },
             null,
-            "No values"
+            "No values",
+            await this.#getFluxStyleSheetManager()
         ));
     }
 
@@ -1266,6 +1324,10 @@ export class FluxFieldValueStorageUI {
      * @returns {Promise<void>}
      */
     async #init() {
+        await (await this.#getFluxStyleSheetManager()).addStyleSheet(
+            layout_css
+        );
+
         await (await this.#getFluxPwaApi()).initPwa(
             `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/Manifest/manifest.json`
         );
@@ -1282,7 +1344,9 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = await FluxOverlayElement.loading();
+        const flux_overlay_element = await FluxOverlayElement.loading(
+            await this.#getFluxStyleSheetManager()
+        );
 
         try {
             await this.#request(
@@ -1300,7 +1364,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Move field down",
                 "Couldn't move field!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;
@@ -1320,7 +1385,9 @@ export class FluxFieldValueStorageUI {
             FluxOverlayElement
         } = await import("./Libs/flux-overlay/src/FluxOverlayElement.mjs");
 
-        const flux_overlay_element = await FluxOverlayElement.loading();
+        const flux_overlay_element = await FluxOverlayElement.loading(
+            await this.#getFluxStyleSheetManager()
+        );
 
         try {
             await this.#request(
@@ -1338,7 +1405,8 @@ export class FluxFieldValueStorageUI {
             await FluxOverlayElement.alert(
                 "Move field up",
                 "Couldn't move field!",
-                "OK"
+                "OK",
+                await this.#getFluxStyleSheetManager()
             );
 
             return false;

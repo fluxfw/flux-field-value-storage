@@ -17,12 +17,20 @@ export class FieldTypeService {
 
     /**
      * @param {FluxValueFormat} flux_value_format
-     * @returns {FieldTypeService}
+     * @returns {Promise<FieldTypeService>}
      */
-    static new(flux_value_format) {
-        return new this(
+    static async new(flux_value_format) {
+        const field_type_service = new this(
             flux_value_format
         );
+
+        for (const field_type of DEFAULT_FIELD_TYPES) {
+            await field_type_service.addFieldType(
+                field_type
+            );
+        }
+
+        return field_type_service;
     }
 
     /**
@@ -32,12 +40,6 @@ export class FieldTypeService {
     constructor(flux_value_format) {
         this.#flux_value_format = flux_value_format;
         this.#field_types = new Map();
-
-        for (const field_type of DEFAULT_FIELD_TYPES) {
-            this.addFieldType(
-                field_type
-            ).catch(console.error);
-        }
     }
 
     /**

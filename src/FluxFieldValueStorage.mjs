@@ -668,7 +668,7 @@ export class FluxFieldValueStorage {
      * @returns {Promise<FieldTypeService>}
      */
     async #getFieldTypeService() {
-        this.#field_type_service ??= (await import("./FieldType/FieldTypeService.mjs")).FieldTypeService.new(
+        this.#field_type_service ??= await (await import("./FieldType/FieldTypeService.mjs")).FieldTypeService.new(
             await this.#getFluxValueFormat()
         );
 
@@ -737,7 +737,7 @@ export class FluxFieldValueStorage {
      * @returns {Promise<FluxValueFormat>}
      */
     async #getFluxValueFormat() {
-        this.#flux_value_format ??= (await import("../../flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
+        this.#flux_value_format ??= await (await import("../../flux-value-format/src/FluxValueFormat.mjs")).FluxValueFormat.new();
 
         return this.#flux_value_format;
     }
