@@ -37,7 +37,7 @@ installLibrary flux-loading-spinner https://github.com/fluxfw/flux-loading-spinn
 
 installLibrary flux-mongo-db-connector https://github.com/fluxfw/flux-mongo-db-connector/archive/refs/tags/v2023-04-20-2.tar.gz
 
-installLibrary flux-overlay https://github.com/fluxfw/flux-overlay/archive/refs/tags/v2023-07-27-1.tar.gz
+installLibrary flux-overlay https://github.com/fluxfw/flux-overlay/archive/refs/tags/v2023-07-27-2.tar.gz
 
 installLibrary flux-pwa-api https://github.com/fluxfw/flux-pwa-api/archive/refs/tags/v2023-07-27-1.tar.gz
 
